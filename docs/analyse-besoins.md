@@ -34,7 +34,7 @@
 #### ⚙️ 4. Collecteur Automatique (Celery)
 - Se réveille automatiquement toutes les heures
 - Interroge les APIs externes (USGS, NASA, OpenWeatherMap)
-- Stocke les nouvelles données dans MongoDB
+- Normalise et stocke les nouvelles données dans MongoDB
 - Déclenche le modèle IA et génère les alertes
 
 ---
@@ -47,6 +47,7 @@
 | 6 | 🛰️ **NASA FIRMS / EONET** | Incendies et événements naturels |
 | 7 | 🌤️ **OpenWeatherMap** | Météo (température, humidité, vent, précipitations) |
 | 8 | 🗺️ **OpenStreetMap** | Tuiles de la carte interactive du Maroc |
+| 9 | 🔌 **SocketIO** | Communication temps réel — envoie les alertes instantanément aux utilisateurs connectés |
 
 ---
 
@@ -61,13 +62,13 @@
 ### 🔐 Utilisateur Enregistré
 - S'inscrire et se connecter
 - Choisir ses régions à surveiller
-- Recevoir des alertes en temps réel
+- Recevoir des alertes en temps réel via SocketIO
 - Consulter l'historique de ses alertes
 - Gérer son profil et ses préférences
 
 ### 🛡️ Administrateur
 - Gérer les comptes utilisateurs
-- Configurer les seuils d'alerte
+- Configurer les seuils d'alerte (seuil) par type de catastrophe
 - Consulter les logs et erreurs
 - Forcer manuellement une collecte de données
 - Activer / désactiver des sources externes
@@ -77,7 +78,7 @@
 - Normaliser et stocker les données dans MongoDB
 - Calculer un score de risque (0% → 100%) par région
 - Déclencher une alerte si le score dépasse le seuil
-- Envoyer les alertes aux utilisateurs concernés
+- Envoyer les alertes via SocketIO aux utilisateurs concernés
 
 ---
 
@@ -116,7 +117,7 @@
 2. Il clique sur "Se connecter"
 3. Il saisit son email et mot de passe
 4. Il clique sur "Confirmer"
-5. Le système valide les informations
+5. Le système valide les informations et génère un JWT token
 6. L'utilisateur arrive sur la page principale
 
 **Résultat :** L'utilisateur est connecté avec succès ✅
@@ -190,14 +191,16 @@
 **Scénario :**
 1. Le collecteur automatique (Celery) se réveille
 2. Il récupère les données USGS / NASA / OpenWeatherMap
-3. Le modèle IA calcule un score de risque par région
-4. Le score dépasse le seuil configuré
-5. Django génère une alerte pour les régions concernées
-6. L'alerte est envoyée aux utilisateurs de ces régions
-7. L'utilisateur reçoit une notification dans l'app
-8. Il clique sur la notification pour voir les détails
+3. Il normalise les données collectées
+4. Le modèle IA calcule un score de risque par région
+5. Le score dépasse le seuil configuré
+6. Django génère une alerte pour les régions concernées
+7. Django → SocketIO : émettre l'alerte
+8. SocketIO → React : WebSocket event
+9. React → Utilisateur : afficher notification toast
+10. L'utilisateur clique sur la notification pour voir les détails
 
-**Résultat :** L'utilisateur est notifié du risque de catastrophe dans sa région ✅
+**Résultat :** L'utilisateur est notifié en temps réel du risque de catastrophe dans sa région ✅
 
 ---
 
@@ -259,9 +262,11 @@
 6. Il lance le modèle IA pour chaque région du Maroc
 7. Le modèle calcule un score de risque (0% → 100%)
 8. Si le score dépasse le seuil → alerte générée
-9. Django envoie l'alerte aux utilisateurs concernés
+9. Django → SocketIO : émettre l'alerte
+10. SocketIO → React : WebSocket event
+11. React → Utilisateur : afficher notification
 
-**Résultat :** Les données sont à jour et les alertes sont envoyées aux utilisateurs des régions à risque ✅
+**Résultat :** Les données sont à jour et les alertes sont envoyées en temps réel aux utilisateurs des régions à risque ✅
 
 ---
 
@@ -276,6 +281,8 @@
 | 🗺️ **Carte** | Leaflet.js |
 | 🤖 **Modèle IA** | Classification supervisée simple (scikit-learn) |
 | ⏰ **Tâches automatiques** | Celery (Django) |
+| 🔌 **Temps réel** | SocketIO |
+| 🔐 **Authentification** | JWT (JSON Web Token) |
 | 🌐 **APIs** | USGS, NASA FIRMS, OpenWeatherMap |
 | 📁 **Versioning** | Git + GitHub |
 | 🌋 **Phénomènes** | Séismes, Inondations, Incendies de forêt |
@@ -283,4 +290,5 @@
 
 ---
 
-> ### *Mars 2026 — Version 1.0*
+> ### *Mars 2026 —— Version 2.0*
+---
