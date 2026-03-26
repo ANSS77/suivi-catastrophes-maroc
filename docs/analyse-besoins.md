@@ -47,7 +47,6 @@
 | 6 | 🛰️ **NASA FIRMS / EONET** | Incendies et événements naturels |
 | 7 | 🌤️ **OpenWeatherMap** | Météo (température, humidité, vent, précipitations) |
 | 8 | 🗺️ **OpenStreetMap** | Tuiles de la carte interactive du Maroc |
-| 9 | 🔌 **SocketIO** | Communication temps réel — envoie les alertes instantanément aux utilisateurs connectés |
 
 ---
 
@@ -195,12 +194,11 @@
 4. Le modèle IA calcule un score de risque par région
 5. Le score dépasse le seuil configuré
 6. Django génère une alerte pour les régions concernées
-7. Django → SocketIO : émettre l'alerte
-8. SocketIO → React : WebSocket event
-9. React → Utilisateur : afficher notification toast
-10. L'utilisateur clique sur la notification pour voir les détails
+7. L'alerte est envoyee aux utilisateurs de ces regions
+8. L'utilisateur recoit une notification dans l'app
+9. L'utilisateur clique sur la notification pour voir les détails
 
-**Résultat :** L'utilisateur est notifié en temps réel du risque de catastrophe dans sa région ✅
+**Résultat :** L'utilisateur est notifie du risque de catastrophe dans sa region ✅
 
 ---
 
@@ -262,11 +260,10 @@
 6. Il lance le modèle IA pour chaque région du Maroc
 7. Le modèle calcule un score de risque (0% → 100%)
 8. Si le score dépasse le seuil → alerte générée
-9. Django → SocketIO : émettre l'alerte
-10. SocketIO → React : WebSocket event
-11. React → Utilisateur : afficher notification
+9. Django envoie l'alerte aux utilisateurs concernes
+10. React → Utilisateur : afficher notification
 
-**Résultat :** Les données sont à jour et les alertes sont envoyées en temps réel aux utilisateurs des régions à risque ✅
+**Résultat :**  Les donnees sont a jour et les alertes sont envoyees aux utilisateurs des regions a risque ✅
 
 ---
 
@@ -281,7 +278,6 @@
 | 🗺️ **Carte** | Leaflet.js |
 | 🤖 **Modèle IA** | Classification supervisée simple (scikit-learn) |
 | ⏰ **Tâches automatiques** | Celery (Django) |
-| 🔌 **Temps réel** | SocketIO |
 | 🔐 **Authentification** | JWT (JSON Web Token) |
 | 🌐 **APIs** | USGS, NASA FIRMS, OpenWeatherMap |
 | 📁 **Versioning** | Git + GitHub |
