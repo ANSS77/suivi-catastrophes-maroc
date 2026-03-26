@@ -61,7 +61,7 @@
 ### 🔐 Utilisateur Enregistré
 - S'inscrire et se connecter
 - Choisir ses régions à surveiller
-- Recevoir des alertes en temps réel via SocketIO
+- Recevoir des alertes en temps réel
 - Consulter l'historique de ses alertes
 - Gérer son profil et ses préférences
 
@@ -77,7 +77,7 @@
 - Normaliser et stocker les données dans MongoDB
 - Calculer un score de risque (0% → 100%) par région
 - Déclencher une alerte si le score dépasse le seuil
-- Envoyer les alertes via SocketIO aux utilisateurs concernés
+- Envoyer les alertes aux utilisateurs concernes
 
 ---
 
