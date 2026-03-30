@@ -11,6 +11,7 @@
 - [Description](#description)
 - [Caractéristiques](#caractéristiques)
 - [Architecture](#architecture)
+- [Technologies Utilisées](#technologies-utilisées)
 - [Diagrammes UML](#diagrammes-uml)
 - [Les Acteurs](#les-acteurs)
 - [Besoins Fonctionnels](#besoins-fonctionnels)
@@ -71,16 +72,37 @@
 
 ### 🤖 Composants Principaux
 
-- **Frontend** : Interface web réactive avec Leaflet/Mapbox
-- **Backend API** : Service REST pour la gestion des données
+- **Frontend** : React.js avec Leaflet/Mapbox pour la carte interactive
+- **Backend API** : Django REST Framework pour les services web
 - **Collecteur Automatique** : Celery - Collecte horaire via les APIs externes
 - **Base de Données** : MongoDB - Stockage normalisé des événements
 - **Modèle IA** : Calcul du score de risque par région (0% → 100%)
-- **Système d'Alertes** : Notifications aux utilisateurs
+- **Système d'Alertes** : Notifications temps réel aux utilisateurs
 
 ---
 
-## 📐 Diagrammes UML
+## �️ Technologies Utilisées
+
+### Frontend
+- **React.js** - Framework JavaScript pour l'interface utilisateur
+- **Leaflet/Mapbox** - Cartes interactives et visualisation géographique
+- **Axios** - Client HTTP pour les appels API
+- **Material-UI** - Composants d'interface utilisateur
+
+### Backend
+- **Django** - Framework web Python
+- **Django REST Framework** - API REST pour le backend
+- **Celery** - Tâches asynchrones et planifiées
+- **MongoDB** - Base de données NoSQL
+
+### Outils et Services
+- **Git** - Contrôle de version
+- **Docker** - Conteneurisation (optionnel)
+- **Redis** - Cache et broker de messages pour Celery
+
+---
+
+## �📐 Diagrammes UML
 
 ### Diagramme de Cas d'Utilisation
 
@@ -169,29 +191,119 @@ Les diagrammes de séquence détaillent les flux d'interactions pour chaque cas 
 
 ### Prérequis
 
-- Python 3.8+
-- MongoDB
-- Node.js (pour le frontend)
+- **Python 3.8+** (pour Django)
+- **Node.js 16+** (pour React)
+- **MongoDB** (base de données)
+- **Redis** (pour Celery, optionnel)
 
 ### Étapes d'Installation
 
 ```bash
-# Cloner le repository
+# 1. Cloner le repository
 git clone https://github.com/yourusername/suivi-catastrophes-maroc.git
 cd suivi-catastrophes-maroc
 
-# Installer les dépendances backend
+# 2. Configuration du Backend (Django)
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Sur Windows
 pip install -r requirements.txt
 
-# Configurer la base de données
-# Créer un fichier .env avec vos configurations
+# Configuration de la base de données
+# Créer un fichier .env dans le dossier backend avec :
+# SECRET_KEY=votre_clé_secrète
+# DATABASE_URL=mongodb://localhost:27017/disaster_tracker
+# REDIS_URL=redis://localhost:6379
 
-# Installer les dépendances frontend
-cd frontend
+# Appliquer les migrations
+python manage.py migrate
+
+# 3. Configuration du Frontend (React)
+cd ../frontend
 npm install
 
-# Démarrer l'application
+# Créer un fichier .env.local avec :
+# REACT_APP_API_URL=http://localhost:8000/api
+
+# 4. Démarrage des services
+# Terminal 1 - Backend Django
+cd backend
+python manage.py runserver
+
+# Terminal 2 - Frontend React
+cd frontend
 npm start
+
+# Terminal 3 - Celery (optionnel)
+cd backend
+celery -A disaster_tracker worker --loglevel=info
+```
+
+### Structure du Projet
+
+```
+suivi-catastrophes-maroc/
+├── backend/                    # Application Django
+│   ├── disaster_tracker/       # Configuration Django
+│   ├── api/                    # API REST (DRF)
+│   ├── collector/              # Module de collecte de données
+│   ├── alerts/                 # Système d'alertes
+│   ├── users/                  # Gestion des utilisateurs
+│   └── manage.py
+├── frontend/                   # Application React
+│   ├── public/
+│   ├── src/
+│   │   ├── components/         # Composants React
+│   │   ├── pages/             # Pages de l'application
+│   │   ├── services/          # Services API
+│   │   ├── hooks/             # Hooks personnalisés
+│   │   └── utils/             # Utilitaires
+│   └── package.json
+├── docs/                       # Documentation
+└── README.md
+```
+
+### Commandes de Développement
+
+#### Backend (Django)
+```bash
+cd backend
+
+# Créer et activer l'environnement virtuel
+python -m venv venv
+venv\Scripts\activate
+
+# Installer les dépendances
+pip install -r requirements.txt
+
+# Appliquer les migrations
+python manage.py migrate
+
+# Créer un superutilisateur
+python manage.py createsuperuser
+
+# Démarrer le serveur de développement
+python manage.py runserver
+
+# Lancer les tests
+python manage.py test
+```
+
+#### Frontend (React)
+```bash
+cd frontend
+
+# Installer les dépendances
+npm install
+
+# Démarrer le serveur de développement
+npm start
+
+# Construire pour la production
+npm run build
+
+# Lancer les tests
+npm test
 ```
 
 ---
