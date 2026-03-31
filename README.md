@@ -189,7 +189,7 @@ Les diagrammes de séquence détaillent les flux d'interactions pour chaque cas 
 
 ## 🚀 Installation
 
-### Prérequis
+<!--### Prérequis
 
 - **Python 3.8+** (pour Django)
 - **Node.js 16+** (pour React)
@@ -306,11 +306,11 @@ npm run build
 npm test
 ```
 
----
+--- -->
 
 ## 💻 Utilisation
 
-### Accès à l'Application
+<!--### Accès à l'Application
 
 1. Ouvrez votre navigateur et accédez à `http://localhost:3000`
 2. Consultez la carte des catastrophes en temps réel
@@ -333,7 +333,7 @@ npm test
 - Consultez les logs et les statistiques
 
 ---
-
+-->
 ## 📚 Documentation Supplémentaire
 
 - 📋 [Analyse des Besoins Détaillée](docs/analyse-besoins.md)
