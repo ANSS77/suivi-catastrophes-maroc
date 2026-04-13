@@ -71,9 +71,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # MongoDB via MongoEngine
 import mongoengine
+
 mongoengine.connect(
-    db=os.getenv('MONGO_DB', 'disastertrack'),
-    host=os.getenv('MONGO_URI', 'mongodb://localhost:27017/disastertrack')
+    host=os.getenv('MONGO_URI')
 )
 
 # Désactiver les migrations Django (on utilise MongoDB)
