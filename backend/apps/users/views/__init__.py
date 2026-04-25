@@ -4,6 +4,9 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.users.serializers import RegisterSerializer, LoginSerializer
 from apps.users.services import authenticate_user, generate_tokens
+from apps.alerts.models import Notification
+from apps.users.serializers import ChooseRegionsSerializer
+from bson import ObjectId
 
 
 class RegisterView(APIView):
@@ -35,3 +38,22 @@ class LogoutView(APIView):
         token = request.data.get('refresh')
         RefreshToken(token).blacklist()
         return Response({'message': 'Déconnecté avec succès.'}, status=status.HTTP_200_OK)
+    
+
+class ChooseRegionsView(APIView):
+    def post(self, request):
+        serializer = ChooseRegionsSerializer(data=request.data)
+        if serializer.is_valid():
+            user_id = request.auth.get('user_id')
+            region_ids = [ObjectId(r) for r in serializer.validated_data['regionIds']]
+            
+            notification = Notification.objects(userId=ObjectId(user_id)).first()
+            if notification:
+                notification.regionIds = region_ids
+                notification.save()
+            else:
+                Notification(
+                    userId=ObjectId(user_id), regionIds=region_ids).save()
+            
+            return Response({'message': 'Régions sauvegardées.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
