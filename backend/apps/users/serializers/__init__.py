@@ -27,3 +27,8 @@ class RegisterSerializer(serializers.Serializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True)
+
+
+class ChooseRegionsSerializer(serializers.Serializer):
+    regionIds = serializers.ListField(
+    child=serializers.CharField(), required=True)
