@@ -1,11 +1,49 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../components/auth/AuthLayout';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
+  if (!formData.email) {
+    setError('L\'email est requis.');
+    return;
+  }
+  if (!formData.password) {
+    setError('Le mot de passe est requis.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    await login({
+      email: formData.email,
+      password: formData.password,
+    });
+    navigate('/dashboard');
+  } catch (err) {
+    if (err.response?.status === 401) {
+      setError('Email ou mot de passe incorrect.');
+    } else if (err.response?.status === 400) {
+      setError('Données invalides. Vérifiez les champs.');
+    } else if (err.response?.status === 500) {
+      setError('Erreur serveur. Réessayez plus tard.');
+    } else {
+      setError('Erreur de connexion. Réessayez.');
+    }
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <AuthLayout>
       {/* Titre */}
@@ -16,7 +54,7 @@ export default function LoginPage() {
         Entrez vos identifiants pour accéder au tableau de bord.
       </p>
 
-      <form onSubmit={e => e.preventDefault()} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         
         {/* Email */}
         <div>
@@ -62,11 +100,16 @@ export default function LoginPage() {
         </div>
 
         {/* Bouton */}
-        <button
+        {error && (
+          <p className="text-red-500 text-sm font-['Manrope'] text-center">{error}</p>
+        )}
+
+       <button
           type="submit"
+          disabled={loading}
           className="w-full bg-[#C2652A] hover:bg-[#A95520] text-white border-none rounded-lg p-4 text-sm font-bold cursor-pointer mt-2 tracking-[0.05em] font-['Manrope'] transition-colors"
         >
-          Se connecter
+          {loading ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
 

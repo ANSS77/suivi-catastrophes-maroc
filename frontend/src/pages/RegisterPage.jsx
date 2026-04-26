@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const REGIONS = [
   'Tanger-Tetouan-Al Hoceima', 'Oriental', 'Fes-Meknes',
@@ -14,6 +16,10 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({ nom: '', email: '', password: '', regions: [] });
   const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -34,6 +40,57 @@ export default function RegisterPage() {
       return { ...prev, regions };
     });
   };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    // Vérification champs vides
+    if (!formData.nom) {
+      setError('Le nom est requis.');
+      return;
+    }
+    if (!formData.email) {
+      setError('L\'email est requis.');
+      return;
+    }
+    if (!formData.password) {
+      setError('Le mot de passe est requis.');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+    if (formData.regions.length === 0) {
+      setError('Veuillez sélectionner au moins une région.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await register({
+        nom: formData.nom,
+        email: formData.email,
+        password: formData.password,
+        regions: formData.regions,
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      if (err.response?.status === 400) {
+        if (err.response?.data?.email) {
+          setError('Cette adresse email est déjà utilisée.');
+        } else {
+          setError('Données invalides. Vérifiez les champs.');
+        }
+      } else if (err.response?.status === 500) {
+        setError('Erreur serveur. Réessayez plus tard.');
+      } else {
+        setError('Erreur lors de l\'inscription. Réessayez.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <AuthLayout>
@@ -45,7 +102,7 @@ export default function RegisterPage() {
         Rejoignez le réseau national de vigilance.
       </p>
 
-      <form onSubmit={e => e.preventDefault()} className="flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
         {/* Nom */}
         <div>
@@ -139,13 +196,13 @@ export default function RegisterPage() {
             </div>
           )}
         </div>
-
+        <p className="text-red-500 text-sm font-['Manrope'] text-center">{error}</p>
         {/* Bouton */}
         <button
-          type="submit"
+          type="submit" disabled={loading}
           className="w-full bg-[#C2652A] hover:bg-[#A95520] text-white border-none rounded-lg p-4 text-sm font-bold cursor-pointer mt-2 tracking-[0.05em] font-['Manrope'] transition-colors"
         >
-          S'inscrire
+          {loading ? 'Inscription...' : "S'inscrire"}
         </button>
       </form>
 
