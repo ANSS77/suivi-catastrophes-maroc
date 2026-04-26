@@ -1,29 +1,24 @@
-# 🚨 Suivi des Catastrophes au Maroc
+# 🚨 MoroccAlert — Suivi des Catastrophes Naturelles au Maroc
 
 **Application web de suivi et d'alerte sur les catastrophes naturelles au Maroc**
 
-> Projet de Fin d'Études (PFE) — 2026
+> Projet de Fin d'Études (PFE) — 2025/2026
 
 ---
 
-## 📋 Table des matières
+## 👨‍💼 Équipe
 
-- [Description](#description)
-- [Caractéristiques](#caractéristiques)
-- [Architecture](#architecture)
-- [Technologies Utilisées](#technologies-utilisées)
-- [Diagrammes UML](#diagrammes-uml)
-- [Les Acteurs](#les-acteurs)
-- [Besoins Fonctionnels](#besoins-fonctionnels)
-- [Installation](#installation)
-- [Utilisation](#utilisation)
-- [Équipe](#équipe)
+| Nom | GitHub | LinkedIn |
+|-----|--------|----------|
+| Anssem Hafid | [@ANSS77](https://github.com/ANSS77) | [LinkedIn](www.linkedin.com/in/hafid-anssem) |
+| Mohamed | [@Mohamadaminehaifi](https://github.com/Mohamadaminehaifi) | [LinkedIn](https://www.linkedin.com/in/mohamed-amine-haifi-2b945b32b/) |
+| Ouchraa Ismail | [@ismailouchraa](https://github.com/ismailouchraa) | [LinkedIn](https://www.linkedin.com/in/ismail-ouchraa-9ba655288/) |
 
 ---
 
 ## 🎯 Description
 
-**Suivi des Catastrophes au Maroc** est une application web conçue pour surveiller et alerter les utilisateurs sur les catastrophes naturelles (séismes, inondations, incendies) qui surviennent au Maroc. L'application collecte des données en temps réel via plusieurs APIs externes et utilise l'intelligence artificielle pour calculer les risques par région.
+**MoroccAlert** est une application web conçue pour surveiller et alerter les utilisateurs sur les catastrophes naturelles (séismes, inondations, incendies) qui surviennent au Maroc. L'application collecte des données en temps réel via plusieurs APIs externes et utilise l'intelligence artificielle pour calculer les risques par région.
 
 ### 🌍 Objectifs Principaux
 
@@ -61,98 +56,208 @@
 
 ## 🏗️ Architecture
 
+### Pattern MVT (Model - View - Template)
+
+```
+MoroccAlert/
+├── Models (MongoEngine)     → Données : User, Disaster, Alert, Prediction...
+├── Views (DRF APIView)      → Logique métier + APIs REST
+└── Templates (React)        → Interface utilisateur
+```
+
 ### 🔗 Sources de Données Externes
 
 | Source | Type de Données |
-|--------|---|
+|--------|----------------|
 | **USGS** 🏔️ | Données sismiques en temps réel |
-| **NASA FIRMS / EONET** 🛰️ | Incendies et événements naturels |
-| **OpenWeatherMap** 🌤️ | Météo (température, humidité, vent, précipitations) |
-| **OpenStreetMap** 🗺️ | Tuiles cartographiques interactives |
+| **NASA FIRMS** 🛰️ | Incendies et événements naturels |
+| **NASA POWER** 🌤️ | Météo (température, humidité, vent, précipitations) |
 
 ### 🤖 Composants Principaux
 
-- **Frontend** : React.js avec Leaflet/Mapbox pour la carte interactive
-- **Backend API** : Django REST Framework pour les services web
-- **Collecteur Automatique** : Celery - Collecte horaire via les APIs externes
-- **Base de Données** : MongoDB - Stockage normalisé des événements
-- **Modèle IA** : Calcul du score de risque par région (0% → 100%)
-- **Système d'Alertes** : Notifications temps réel aux utilisateurs
+| Composant | Technologie | Rôle |
+|-----------|-------------|------|
+| **Frontend** | React.js + Leaflet | Interface utilisateur + Carte interactive |
+| **Backend API** | Django REST Framework | APIs REST |
+| **Collecteur** | Celery | Collecte horaire via APIs externes |
+| **Base de Données** | MongoDB Atlas | Stockage des événements |
+| **Modèle IA** | Scikit-learn | Calcul du score de risque par région |
+| **Broker** | Redis | Gestion des tâches Celery |
 
 ---
 
-## �️ Technologies Utilisées
+## 🗂️ Structure du Projet
 
-### Frontend
-- **React.js** - Framework JavaScript pour l'interface utilisateur
-- **Leaflet/Mapbox** - Cartes interactives et visualisation géographique
-- **Axios** - Client HTTP pour les appels API
-- **Material-UI** - Composants d'interface utilisateur
+```
+suivi-catastrophes-maroc/
+├── backend/                        # Application Django
+│   ├── apps/                       # Applications Django
+│   │   ├── alerts/                 # Alertes + Notifications
+│   │   │   ├── models/             # Alert, Notification
+│   │   │   ├── serializers/        # AlertSerializer, NotificationSerializer
+│   │   │   ├── views/              # AlertView, NotificationView
+│   │   │   └── urls/               # Routes alerts
+│   │   ├── collector/              # Collecte de données externes
+│   │   │   ├── adapters/           # USGS, NASA FIRMS, NASA POWER
+│   │   │   ├── models/             # Collector
+│   │   │   └── tasks.py            # Celery tasks
+│   │   ├── core/                   # Utilitaires partagés
+│   │   │   ├── models/             # Region
+│   │   │   ├── permissions/        # Permissions personnalisées
+│   │   │   └── utils/              # Fonctions utilitaires
+│   │   ├── disasters/              # Catastrophes naturelles
+│   │   │   ├── models/             # Disaster, Earthquake, Flood, Wildfire
+│   │   │   ├── serializers/        # DisasterSerializer
+│   │   │   ├── views/              # DisasterView, DisasterDetailView, DisasterFilterView
+│   │   │   └── urls/               # Routes disasters
+│   │   ├── predictions/            # Prédictions ML
+│   │   │   ├── models/             # Prediction, AiModel
+│   │   │   ├── serializers/        # PredictionSerializer
+│   │   │   ├── services/           # Chargement des .pkl + prédiction
+│   │   │   └── urls/               # Routes predictions
+│   │   └── users/                  # Authentification + Utilisateurs
+│   │       ├── models/             # User
+│   │       ├── serializers/        # RegisterSerializer, LoginSerializer
+│   │       ├── services/           # JWT (authenticate_user, generate_tokens)
+│   │       ├── views/              # RegisterView, LoginView, LogoutView
+│   │       └── urls/               # Routes auth
+│   ├── config/                     # Configuration Django
+│   │   ├── settings.py             # Settings (MongoDB, JWT, CORS, Celery)
+│   │   ├── urls.py                 # URLs principales
+│   │   └── celery.py               # Configuration Celery
+│   └── manage.py
+├── docs/                           # Documentation
+│   ├── maquettes/                  # Maquettes UI (login, home, alerts...)
+│   └── uml/                        # Diagrammes UML (Class, Use Case, Sequence)
+├── frontend/                       # Application React
+│   └── src/
+│       ├── api/                    # axios.js (config + interceptors JWT)
+│       ├── components/             # Composants réutilisables
+│       ├── context/                # AuthContext, AlertContext
+│       ├── hooks/                  # useAuth, useAlerts, useMap
+│       ├── pages/                  # LoginPage, RegisterPage, HomePage...
+│       ├── routes/                 # AppRoutes.jsx (React Router + Auth Guard)
+│       └── services/               # authService, disasterService, alertService
+├── ml/                             # Machine Learning
+│   ├── data/                       # Datasets (séismes, inondations, incendies)
+│   ├── models/                     # Modèles .pkl (non pushés → Google Drive)
+│   └── notebooks/                  # Notebooks d'entraînement
+├── .gitignore
+├── README.md
+└── requirements.txt                # Dépendances Python (racine du projet)
+```
+
+---
+
+## 🛠️ Technologies Utilisées
 
 ### Backend
-- **Django** - Framework web Python
-- **Django REST Framework** - API REST pour le backend
-- **Celery** - Tâches asynchrones et planifiées
-- **MongoDB** - Base de données NoSQL
+- **Django 6.0** — Framework web Python
+- **Django REST Framework** — APIs REST
+- **MongoEngine** — ODM pour MongoDB
+- **MongoDB Atlas** — Base de données NoSQL cloud
+- **Celery + Redis** — Tâches asynchrones et planifiées
+- **djangorestframework-simplejwt** — Authentification JWT
 
-### Outils et Services
-- **Git** - Contrôle de version
-- **Docker** - Conteneurisation (optionnel)
-- **Redis** - Cache et broker de messages pour Celery
+### Frontend
+- **React.js** — Framework JavaScript
+- **Leaflet** — Cartes interactives
+- **Axios** — Client HTTP + interceptors JWT
+- **React Router** — Navigation + Auth Guard
+- **Tailwind CSS** — Styles
+
+### Machine Learning
+- **Scikit-learn** — Modèles Random Forest
+- **Imbalanced-learn** — SMOTE pour rééquilibrage
+- **Pandas / NumPy** — Traitement des données
 
 ---
 
-## �📐 Diagrammes UML
+## 📐 Diagrammes UML
 
 ### Diagramme de Cas d'Utilisation
-
 ![Cas d'Utilisation](docs/uml/exported/use-case.png)
 
-Ce diagramme montre les interactions entre les différents acteurs (Visiteur, Utilisateur Enregistré, Administrateur) et les fonctionnalités principales de l'application.
-
 ### Diagramme de Classes
-
 ![Diagramme de Classes](docs/uml/exported/Class.png)
 
-Architecture des classes principales de l'application montrant les relations entre les entités (User, Event, Alert, Region, etc.).
-
-### Diagrammes de Séquence
-
-Les diagrammes de séquence détaillent les flux d'interactions pour chaque cas d'utilisation principal.
-
-> 📁 Voir le dossier [docs/uml/exported/sequence/](docs/uml/exported/sequence/) pour les diagrammes de séquence complets.
+> 📁 Voir [docs/uml/exported/sequence/](docs/uml/exported/sequence/) pour les diagrammes de séquence.
 
 ---
 
-## 👥 Les Acteurs
+## 🚀 Installation & Lancement
 
-### Utilisateurs Primaires
+### Prérequis
 
-#### 1. **Visiteur Anonyme** 👤
-- Accède à la carte sans compte
-- Consulte les catastrophes actives au Maroc
-- Filtre par type de catastrophe
-- Ne reçoit pas d'alertes personnalisées
+- Python 3.10+
+- Node.js 18+
+- Redis (pour Celery)
+- Compte MongoDB Atlas
 
-#### 2. **Utilisateur Enregistré** 🔐
-- Crée un compte et se connecte
-- Choisit ses régions à surveiller
-- Reçoit des alertes en temps réel
-- Consulte l'historique de ses alertes
+### 1. Cloner le projet
 
-#### 3. **Administrateur** 🛡️
-- Gère les comptes utilisateurs
-- Configure les seuils d'alerte
-- Surveille les logs et performances
-- Force manuellement une collecte de données
+```bash
+git clone https://github.com/hafid/suivi-catastrophes-maroc.git
+cd suivi-catastrophes-maroc
+```
 
-### Acteurs Automatiques
+### 2. Configuration Backend
 
-#### 4. **Collecteur Automatique (Celery)** ⚙️
-- Se réveille automatiquement toutes les heures
-- Interroge les APIs externes
-- Normalise et stocke les données dans MongoDB
-- Déclenche le modèle IA et génère les alertes
+```bash
+# Créer et activer l'environnement virtuel
+python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
+
+# Installer les dépendances (requirements.txt est à la racine)
+pip install -r requirements.txt
+
+# Créer le fichier .env dans backend/
+# Contenu du .env :
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/moroccalert_db
+MONGO_DB=moroccalert_db
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET_KEY=your_jwt_secret_key
+JWT_ACCESS_TOKEN_LIFETIME=60
+JWT_REFRESH_TOKEN_LIFETIME=1440
+```
+
+### 3. Configuration Frontend
+
+```bash
+cd frontend
+
+# Installer les dépendances
+npm install
+
+# Créer le fichier .env dans frontend/
+# Contenu du .env :
+VITE_API_URL=http://localhost:8000
+```
+
+### 4. Lancer l'application
+
+**Terminal 1 — Backend Django :**
+```bash
+cd backend
+python manage.py runserver
+# → http://localhost:8000
+```
+
+**Terminal 2 — Frontend React :**
+```bash
+cd frontend
+npm run dev
+# → http://localhost:5173
+```
+
+**Terminal 3 — Celery (optionnel) :**
+```bash
+cd backend
+celery -A config worker --loglevel=info
+```
 
 ---
 
@@ -176,176 +281,21 @@ Les diagrammes de séquence détaillent les flux d'interactions pour chaque cas 
 - [ ] Configurer les seuils d'alerte par type
 - [ ] Consulter les logs et erreurs
 - [ ] Forcer une collecte manuelle de données
-- [ ] Activer/désactiver les sources externes
 
 ### Collecteur Automatique (Celery)
 - [ ] Interroger les APIs toutes les heures
 - [ ] Normaliser et stocker les données
-- [ ] Calculer un score de risque (0% → 100%) par région
+- [ ] Calculer un score de risque par région
 - [ ] Déclencher une alerte si seuil dépassé
 - [ ] Envoyer les alertes aux utilisateurs concernés
 
 ---
 
-## 🚀 Installation
-
-<!--### Prérequis
-
-- **Python 3.8+** (pour Django)
-- **Node.js 16+** (pour React)
-- **MongoDB** (base de données)
-- **Redis** (pour Celery, optionnel)
-
-### Étapes d'Installation
-
-```bash
-# 1. Cloner le repository
-git clone https://github.com/yourusername/suivi-catastrophes-maroc.git
-cd suivi-catastrophes-maroc
-
-# 2. Configuration du Backend (Django)
-cd backend
-python -m venv venv
-venv\Scripts\activate  # Sur Windows
-pip install -r requirements.txt
-
-# Configuration de la base de données
-# Créer un fichier .env dans le dossier backend avec :
-# SECRET_KEY=votre_clé_secrète
-# DATABASE_URL=mongodb://localhost:27017/disaster_tracker
-# REDIS_URL=redis://localhost:6379
-
-# Appliquer les migrations
-python manage.py migrate
-
-# 3. Configuration du Frontend (React)
-cd ../frontend
-npm install
-
-# Créer un fichier .env.local avec :
-# REACT_APP_API_URL=http://localhost:8000/api
-
-# 4. Démarrage des services
-# Terminal 1 - Backend Django
-cd backend
-python manage.py runserver
-
-# Terminal 2 - Frontend React
-cd frontend
-npm start
-
-# Terminal 3 - Celery (optionnel)
-cd backend
-celery -A disaster_tracker worker --loglevel=info
-```
-
-### Structure du Projet
-
-```
-suivi-catastrophes-maroc/
-├── backend/                    # Application Django
-│   ├── disaster_tracker/       # Configuration Django
-│   ├── api/                    # API REST (DRF)
-│   ├── collector/              # Module de collecte de données
-│   ├── alerts/                 # Système d'alertes
-│   ├── users/                  # Gestion des utilisateurs
-│   └── manage.py
-├── frontend/                   # Application React
-│   ├── public/
-│   ├── src/
-│   │   ├── components/         # Composants React
-│   │   ├── pages/             # Pages de l'application
-│   │   ├── services/          # Services API
-│   │   ├── hooks/             # Hooks personnalisés
-│   │   └── utils/             # Utilitaires
-│   └── package.json
-├── docs/                       # Documentation
-└── README.md
-```
-
-### Commandes de Développement
-
-#### Backend (Django)
-```bash
-cd backend
-
-# Créer et activer l'environnement virtuel
-python -m venv venv
-venv\Scripts\activate
-
-# Installer les dépendances
-pip install -r requirements.txt
-
-# Appliquer les migrations
-python manage.py migrate
-
-# Créer un superutilisateur
-python manage.py createsuperuser
-
-# Démarrer le serveur de développement
-python manage.py runserver
-
-# Lancer les tests
-python manage.py test
-```
-
-#### Frontend (React)
-```bash
-cd frontend
-
-# Installer les dépendances
-npm install
-
-# Démarrer le serveur de développement
-npm start
-
-# Construire pour la production
-npm run build
-
-# Lancer les tests
-npm test
-```
-
---- -->
-
-## 💻 Utilisation
-
-<!--### Accès à l'Application
-
-1. Ouvrez votre navigateur et accédez à `http://localhost:3000`
-2. Consultez la carte des catastrophes en temps réel
-3. Créez un compte pour personnaliser vos alertes
-
-### Exemples d'Utilisation
-
-**Pour un Visiteur Anonyme :**
-- Cliquez sur un événement sur la carte pour voir les détails
-- Utilisez les filtres pour afficher uniquement certains types de catastrophes
-
-**Pour un Utilisateur Enregistré :**
-- Connectez-vous avec vos identifiants
-- Sélectionnez les régions que vous souhaitez surveiller
-- Recevez automatiquement des alertes pour votre région
-
-**Pour un Administrateur :**
-- Accédez au tableau de bord d'administration
-- Configurez les seuils d'alerte
-- Consultez les logs et les statistiques
-
----
--->
 ## 📚 Documentation Supplémentaire
 
-- 📋 [Analyse des Besoins Détaillée](docs/analyse-besoins.md)
+- 📋 [Analyse des Besoins](docs/analyse-besoins.md)
 - 🎨 [Maquettes](docs/maquettes/)
 - 📐 [Diagrammes UML](docs/uml/)
-
----
-
-## 👨‍💼 Équipe
-
-**Projet de Fin d'Études (PFE)**
-- Année académique : 2025-2026
 
 ---
 
@@ -355,4 +305,4 @@ Ce projet est sous licence MIT.
 
 ---
 
-**Dernière mise à jour** : March 2026
+**Dernière mise à jour** : Avril 2026
