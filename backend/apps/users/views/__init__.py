@@ -7,9 +7,11 @@ from apps.users.services import authenticate_user, generate_tokens
 from apps.alerts.models import Notification
 from apps.users.serializers import ChooseRegionsSerializer
 from bson import ObjectId
+from rest_framework.permissions import AllowAny
 
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny] 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -19,6 +21,7 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny] 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
