@@ -10,7 +10,7 @@
 
 | Nom | GitHub | LinkedIn |
 |-----|--------|----------|
-| Anssem Hafid | [@ANSS77](https://github.com/ANSS77) | [LinkedIn](www.linkedin.com/in/hafid-anssem/) |
+| Anssem Hafid | [@ANSS77](https://github.com/ANSS77) | [LinkedIn](https://www.linkedin.com/in/hafid-anssem) |
 | Mohamad Amine Haifi | [@Mohamadaminehaifi](https://github.com/Mohamadaminehaifi) | [LinkedIn](https://www.linkedin.com/in/mohamed-amine-haifi-2b945b32b/) |
 | Ouchraa Ismail | [@ismailouchraa](https://github.com/ismailouchraa) | [LinkedIn](https://www.linkedin.com/in/ismail-ouchraa-9ba655288/) |
 
