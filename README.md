@@ -1,4 +1,4 @@
-# 🚨 MoroccAlert — Suivi des Catastrophes Naturelles au Maroc
+# 🚨 Suivi des Catastrophes Naturelles au Maroc
 
 **Application web de suivi et d'alerte sur les catastrophes naturelles au Maroc**
 
@@ -10,15 +10,15 @@
 
 | Nom | GitHub | LinkedIn |
 |-----|--------|----------|
-| Anssem Hafid | [@ANSS77](https://github.com/ANSS77) | [LinkedIn](www.linkedin.com/in/hafid-anssem) |
-| Mohamed | [@Mohamadaminehaifi](https://github.com/Mohamadaminehaifi) | [LinkedIn](https://www.linkedin.com/in/mohamed-amine-haifi-2b945b32b/) |
+| Anssem Hafid | [@ANSS77](https://github.com/ANSS77) | [LinkedIn](www.linkedin.com/in/hafid-anssem/) |
+| Mohamad Amine Haifi | [@Mohamadaminehaifi](https://github.com/Mohamadaminehaifi) | [LinkedIn](https://www.linkedin.com/in/mohamed-amine-haifi-2b945b32b/) |
 | Ouchraa Ismail | [@ismailouchraa](https://github.com/ismailouchraa) | [LinkedIn](https://www.linkedin.com/in/ismail-ouchraa-9ba655288/) |
 
 ---
 
 ## 🎯 Description
 
-**MoroccAlert** est une application web conçue pour surveiller et alerter les utilisateurs sur les catastrophes naturelles (séismes, inondations, incendies) qui surviennent au Maroc. L'application collecte des données en temps réel via plusieurs APIs externes et utilise l'intelligence artificielle pour calculer les risques par région.
+**DisasterTrack** est une application web conçue pour surveiller et alerter les utilisateurs sur les catastrophes naturelles (séismes, inondations, incendies) qui surviennent au Maroc. L'application collecte des données en temps réel via plusieurs APIs externes et utilise l'intelligence artificielle pour calculer les risques par région.
 
 ### 🌍 Objectifs Principaux
 
