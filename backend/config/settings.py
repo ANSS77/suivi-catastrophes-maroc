@@ -117,3 +117,5 @@ LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Casablanca'
 USE_I18N = True
 USE_TZ = True
+
+NASA_FIRMS_API_KEY = os.getenv('NASA_FIRMS_API_KEY')

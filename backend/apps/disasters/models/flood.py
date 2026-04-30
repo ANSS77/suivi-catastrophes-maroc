@@ -1,17 +1,19 @@
-from mongoengine import Document, FloatField, StringField, IntField
+from mongoengine import Document, FloatField, StringField, IntField, DateTimeField
 
 
 class Flood(Document):
     PRECTOTCORR = FloatField()
-    T2M = FloatField()
     RH2M = FloatField()
+    T2M = FloatField()
     WS2M = FloatField()
+    GWETTOP = FloatField()
+    PS = FloatField()
     region = StringField()
     latitude = FloatField()
     longitude = FloatField()
-    year = IntField()
+    date = DateTimeField()
     month = IntField()
-    season = StringField(choices=['spring', 'autumn', 'winter'])
+    day_of_year = IntField()
     flood_risk = StringField(choices=['low', 'medium', 'high'])
 
     meta = {'collection': 'floods'}
