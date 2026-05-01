@@ -1,6 +1,5 @@
- 
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from apps.disasters.models import Flood
 
 NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
@@ -24,7 +23,7 @@ REGIONS = [
 def fetch_floods(days: int = 1) -> dict:
     result = {"created": 0, "skipped": 0, "errors": []}
 
-    end_date   = datetime.utcnow()
+    end_date   = datetime.now(timezone.utc) - timedelta(days=7)
     start_date = end_date - timedelta(days=days)
 
     start_str = start_date.strftime("%Y%m%d")
@@ -42,7 +41,7 @@ def fetch_floods(days: int = 1) -> dict:
                 "format": "JSON",
             }
 
-            response = requests.get(NASA_POWER_URL, params=params, timeout=30)
+            response = requests.get(NASA_POWER_URL, params=params, timeout=60)
             response.raise_for_status()
             data = response.json()
 
@@ -64,6 +63,10 @@ def fetch_floods(days: int = 1) -> dict:
                     ws2m        = float(ws2m_data.get(date_str) or 0)
                     gwettop     = float(gwet_data.get(date_str) or 0)
                     ps          = float(ps_data.get(date_str) or 0)
+
+                    if any(v == -999 for v in [prectotcorr, rh2m, t2m, ws2m, gwettop, ps]):
+                        result["skipped"] += 1
+                        continue
 
                     month       = parsed_date.month
                     day_of_year = parsed_date.timetuple().tm_yday

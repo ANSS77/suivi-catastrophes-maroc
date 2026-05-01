@@ -1,5 +1,3 @@
-# backend/apps/collector/adapters/nasa_firms.py
-
 import requests
 from datetime import datetime, date
 from django.conf import settings
@@ -44,7 +42,7 @@ def fetch_wildfires(days: int = 1) -> dict:
             bright_ti5 = float(row.get("bright_ti5", 0))
             scan       = float(row.get("scan", 0))
             track      = float(row.get("track", 0))
-            confidence = row.get("confidence", "n").strip()
+            confidence = int(row.get("confidence", 0))
             daynight   = row.get("daynight", "D").strip()
             type_      = int(float(row.get("type", 0)))
             acq_date   = row.get("acq_date", str(date.today())).strip()
