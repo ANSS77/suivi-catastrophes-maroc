@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
-import DashboardPage from '../pages/DashboardPage';
+import AlertsPage from '../pages/AlertsPage';
 import HistoryPage from '../pages/HistoryPage';
 import ProfilePage from '../pages/ProfilePage';
 
@@ -25,16 +25,11 @@ export default function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Privé — Utilisateur connecté */}
-        <Route path="/dashboard" element={
-          <PrivateRoute><DashboardPage /></PrivateRoute>
-        }/>
-        <Route path="/history" element={
-          <PrivateRoute><HistoryPage /></PrivateRoute>
-        }/>
-        <Route path="/profile" element={
-          <PrivateRoute><ProfilePage /></PrivateRoute>
-        }/>
+        {/* Privé */}
+        <Route path="/alerts" element={<PrivateRoute><AlertsPage /></PrivateRoute>} />
+        <Route path="/history" element={<PrivateRoute><HistoryPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+
       </Routes>
     </BrowserRouter>
   );

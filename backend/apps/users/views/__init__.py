@@ -37,11 +37,11 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
-        token = request.data.get('refresh')
-        RefreshToken(token).blacklist()
         return Response({'message': 'Déconnecté avec succès.'}, status=status.HTTP_200_OK)
-    
+
 
 class ChooseRegionsView(APIView):
     def post(self, request):

@@ -3,16 +3,20 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def authenticate_user(input_email, input_password):
-    user = User.objects(email=input_email).first() # chercher en DB
-    if user and user.check_password(input_password): # vérifier password hashé
+    user = User.objects(email=input_email).first()
+    if user and user.check_password(input_password):
         return user
     return None
 
 
 def generate_tokens(user):
-    token = RefreshToken()
-    token['user_id'] = str(user.id)
+    # ✅ Créer token manuellement sans vérification Django Auth
+    refresh = RefreshToken()
+    refresh['user_id'] = str(user.id)   # ObjectId → string
+    refresh['email']   = user.email
+    refresh['role']    = user.role
+    refresh['nom']     = user.nom
     return {
-        'access': str(token.access_token),
-        'refresh': str(token)
+        'access': str(refresh.access_token),
+        'refresh': str(refresh)
     }

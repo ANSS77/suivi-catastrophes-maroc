@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary-orange: #C05D2E;
+  --color-primary-hover: #A64F26;
+  --color-app-bg: #FDFBF7;
+  --color-sidebar-bg: #F7F3EB;
+  --color-text-dark: #4A4A4A;
+  --color-text-muted: #777777;
+  
+  --font-gara: "EB Garamond", serif;
+  --font-rope: "Manrope", sans-serif;
+}
+
+:root {
+  font-family: "Manrope", sans-serif;
+  background-color: var(--color-app-bg);
+  color: var(--color-text-dark);
+}
+
+h1, h2, h3, .font-gara {
+  font-family: "EB Garamond", serif;
+}
