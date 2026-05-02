@@ -11,39 +11,39 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  if (!formData.email) {
-    setError('L\'email est requis.');
-    return;
-  }
-  if (!formData.password) {
-    setError('Le mot de passe est requis.');
-    return;
-  }
-
-  setLoading(true);
-  try {
-    await login({
-      email: formData.email,
-      password: formData.password,
-    });
-    navigate('/dashboard');
-  } catch (err) {
-    if (err.response?.status === 401) {
-      setError('Email ou mot de passe incorrect.');
-    } else if (err.response?.status === 400) {
-      setError('Données invalides. Vérifiez les champs.');
-    } else if (err.response?.status === 500) {
-      setError('Erreur serveur. Réessayez plus tard.');
-    } else {
-      setError('Erreur de connexion. Réessayez.');
+    if (!formData.email) {
+      setError('L\'email est requis.');
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!formData.password) {
+      setError('Le mot de passe est requis.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+      navigate('/');
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setError('Email ou mot de passe incorrect.');
+      } else if (err.response?.status === 400) {
+        setError('Données invalides. Vérifiez les champs.');
+      } else if (err.response?.status === 500) {
+        setError('Erreur serveur. Réessayez plus tard.');
+      } else {
+        setError('Erreur de connexion. Réessayez.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <AuthLayout>
       {/* Titre */}
@@ -55,7 +55,7 @@ export default function LoginPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        
+
         {/* Email */}
         <div>
           <label className="block text-[11px] font-bold tracking-[0.12em] text-[#666] uppercase mb-1.5 font-['Manrope']">
@@ -104,7 +104,7 @@ export default function LoginPage() {
           <p className="text-red-500 text-sm font-['Manrope'] text-center">{error}</p>
         )}
 
-       <button
+        <button
           type="submit"
           disabled={loading}
           className="w-full bg-[#C2652A] hover:bg-[#A95520] text-white border-none rounded-lg p-4 text-sm font-bold cursor-pointer mt-2 tracking-[0.05em] font-['Manrope'] transition-colors"

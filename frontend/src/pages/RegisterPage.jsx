@@ -74,7 +74,7 @@ export default function RegisterPage() {
         password: formData.password,
         regions: formData.regions,
       });
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       if (err.response?.status === 400) {
         if (err.response?.data?.email) {
@@ -164,7 +164,7 @@ export default function RegisterPage() {
           <label className="block text-[11px] font-bold tracking-[0.12em] text-[#666] uppercase mb-1.5 font-['Manrope']">
             Régions
           </label>
-          <div 
+          <div
             className={`flex items-center border-[1.5px] ${isRegionDropdownOpen ? 'border-[#C2652A]' : 'border-[#e0d8d0]'} rounded-lg px-4 py-3.5 bg-white gap-2.5 transition-colors cursor-pointer select-none`}
             onClick={() => setIsRegionDropdownOpen(!isRegionDropdownOpen)}
           >
