@@ -13,8 +13,7 @@ const legendItems = [
   { name: 'Incendies', color: 'bg-orange-500' },
 ];
 
-export default function Sidebar() {
-  const [activeCategory, setActiveCategory] = React.useState('all');
+export default function Sidebar({ activeCategory, setActiveCategory }) {
 
   return (
     <aside className="w-80 h-full flex flex-col justify-between py-8 px-6 bg-app-bg border-r border-gray-100/50 relative z-10">
