@@ -5,8 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from apps.core import constants
-from apps.core.serializers.threshold_serializers import ThresholdSerializer
-
+from apps.core.serializers import ThresholdSerializer
 
 CONSTANTS_PATH = Path(__file__).resolve().parent.parent.parent / 'core' / 'constants.py'
 
