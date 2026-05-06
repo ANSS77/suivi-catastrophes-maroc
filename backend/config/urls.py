@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/', include('apps.disasters.urls.urls')),
     path('api/', include('apps.alerts.urls.urls')),
     path('api/', include('apps.predictions.urls.urls')),
+    path('api/', include('apps.core.urls')),
 ]

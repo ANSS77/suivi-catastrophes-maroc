@@ -3,8 +3,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from apps.users.models import User
-from apps.core.serializers.user_serializers import UserSerializer, ToggleUserSerializer
-
 
 class UserListView(APIView):
     permission_classes = [AllowAny]
