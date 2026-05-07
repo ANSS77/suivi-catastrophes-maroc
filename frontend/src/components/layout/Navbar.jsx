@@ -13,6 +13,7 @@ export default function Navbar() {
     { name: 'Accueil', path: '/' },
     { name: 'Alertes', path: '/alerts' },
     { name: 'Historique', path: '/history' },
+    ...(user?.role === 'admin' ? [{ name: 'Admin', path: '/admin' }] : []),
   ];
 
   const getInitial = (name) => {

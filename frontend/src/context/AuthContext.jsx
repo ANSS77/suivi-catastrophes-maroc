@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { login as loginService, logout as logoutService, register as registerService } from '../services/authService';
+import { jwtDecode } from 'jwt-decode';
 
 const AuthContext = createContext();
 
@@ -10,7 +11,22 @@ export const AuthProvider = ({ children }) => {
   
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    const token = localStorage.getItem('access_token');
+    
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Si le rôle est manquant mais qu'on a un token, on le décode
+      if (!parsed.role && token) {
+        try {
+          const decoded = jwtDecode(token);
+          return { ...parsed, ...decoded };
+        } catch (e) {
+          return parsed;
+        }
+      }
+      return parsed;
+    }
+    return null;
   });
 
   const login = async (data) => {

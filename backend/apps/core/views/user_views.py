@@ -53,3 +53,29 @@ class ToggleUserView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+class DeleteUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def delete(self, request, user_id):
+        """Supprimer un user."""
+        try:
+            user = User.objects(id=user_id).first()
+            if not user:
+                return Response(
+                    {"error": "User non trouvé"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            user.delete()
+
+            return Response(
+                {"message": f"User {user.email} supprimé"},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
