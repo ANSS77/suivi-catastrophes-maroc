@@ -5,15 +5,17 @@ import RegisterPage from '../pages/RegisterPage';
 import AlertsPage from '../pages/AlertsPage';
 import HistoryPage from '../pages/HistoryPage';
 import ProfilePage from '../pages/ProfilePage';
+import AdminPage from '../pages/AdminPage';
+import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('access_token');
-  return token ? children : <Navigate to="/login" />;
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const AdminRoute = ({ children }) => {
-  const role = localStorage.getItem('role');
-  return role === 'admin' ? children : <Navigate to="/" />;
+  const { user } = useAuth();
+  return user?.role === 'admin' ? children : <Navigate to="/" />;
 };
 
 export default function AppRoutes() {
@@ -29,6 +31,7 @@ export default function AppRoutes() {
         <Route path="/alerts" element={<PrivateRoute><AlertsPage /></PrivateRoute>} />
         <Route path="/history" element={<PrivateRoute><HistoryPage /></PrivateRoute>} />
         <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
 
       </Routes>
     </BrowserRouter>

@@ -73,7 +73,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 import mongoengine
 
 mongoengine.connect(
-    host=os.getenv('MONGO_URI')
+    host=os.getenv('MONGO_URI'),
+    tlsAllowInvalidCertificates=True
 )
 
 # Désactiver les migrations Django (on utilise MongoDB)
