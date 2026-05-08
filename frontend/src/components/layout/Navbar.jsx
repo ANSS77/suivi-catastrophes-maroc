@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LogoIcon from '../common/LogoIcon';
+import NotificationDropdown from '../common/NotificationDropdown';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const navLinks = [
     { name: 'Accueil', path: '/' },
@@ -24,7 +25,6 @@ export default function Navbar() {
     <nav className="bg-app-bg px-8 py-4 flex items-center justify-between border-b border-gray-100 relative z-[1000]">
 
       {/* Logo */}
-
       <Link to="/" className="flex-shrink-0">
         <LogoIcon color="#C05D2E" textClassName="text-2xl" size={32} />
       </Link>
@@ -36,16 +36,14 @@ export default function Navbar() {
             key={link.path}
             to={link.path}
             className={({ isActive }) =>
-              `relative py-1 text-lg font-gara transition-colors duration-300 group ${isActive ? 'text-primary-orange' : 'text-text-dark hover:text-primary-orange'
-              }`
+              `relative py-1 text-lg font-gara transition-colors duration-300 group ${isActive ? 'text-primary-orange' : 'text-text-dark hover:text-primary-orange'}`
             }
           >
             {({ isActive }) => (
               <>
                 {link.name}
                 <span
-                  className={`absolute bottom-0 left-0 h-[2px] bg-primary-orange transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                    }`}
+                  className={`absolute bottom-0 left-0 h-[2px] bg-primary-orange transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}
                 ></span>
               </>
             )}
@@ -68,17 +66,32 @@ export default function Navbar() {
             </Link>
           </div>
         ) : (
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-6">
             {/* Notification Bell */}
-            <button className="text-text-dark hover:text-primary-orange transition-colors relative">
-              <i className="fa-regular fa-bell text-xl"></i>
-              <span className="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full border border-white"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => {
+                  setIsNotificationsOpen(!isNotificationsOpen);
+                  setIsProfileOpen(false);
+                }}
+                className="text-text-dark hover:text-primary-orange transition-colors relative"
+              >
+                <i className="fa-regular fa-bell text-xl"></i>
+                <span className="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full border border-white"></span>
+              </button>
+
+              {isNotificationsOpen && (
+                <NotificationDropdown onClose={() => setIsNotificationsOpen(false)} />
+              )}
+            </div>
 
             {/* User Avatar */}
             <div className="relative">
               <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                onClick={() => {
+                  setIsProfileOpen(!isProfileOpen);
+                  setIsNotificationsOpen(false);
+                }}
                 className="w-10 h-10 rounded-full bg-primary-orange text-white flex items-center justify-center font-rope font-bold text-lg hover:ring-2 hover:ring-primary-orange/30 transition-all"
               >
                 {getInitial(user?.nom || user?.name || "Hafid")}
@@ -102,7 +115,6 @@ export default function Navbar() {
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2 text-red-500 hover:bg-red-50 transition-colors text-left"
                   >
-
                     <i className="fa-solid fa-arrow-right-from-bracket"></i>
                     Logout
                   </button>

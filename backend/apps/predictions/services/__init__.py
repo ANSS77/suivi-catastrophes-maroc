@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from apps.disasters.models import Earthquake, Flood, Wildfire, Disaster
 from apps.predictions.models import Prediction, AiModel
 from apps.core.constants import ALERT_THRESHOLDS
+from apps.alerts.services import create_alert_and_notify
 
 # ─── Chemin vers les modèles .pkl ───
 MODELS_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / 'ml' / 'models'
@@ -236,10 +237,14 @@ def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude
         ).save()
 
     # 5. Log si score >= seuil
-    # ⚠️ Alert sera créée dans alerts/services lors de l'intégration
     threshold = ALERT_THRESHOLDS.get(phenomenon, 70.0)
     if score >= threshold:
-        print(f"⚠️ Seuil dépassé — {phenomenon} — {region} — Score: {score:.1f}%")
+        create_alert_and_notify(
+            phenomenon=phenomenon,
+            region=region,
+            score=score,
+            severity=label,
+        )
 
 # ════════════════════════════════════════════════
 # FONCTIONS PRINCIPALES — Appelées par Celery
