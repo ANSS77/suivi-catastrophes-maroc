@@ -34,15 +34,9 @@ const typeConfig = {
     bgColor: 'bg-red-50',
     label: 'Incendie'
   },
-  storm: {
-    icon: 'fa-solid fa-cloud-bolt',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    label: 'Tempête'
-  }
 };
 
-export default function NotificationDropdown({ onClose }) {
+export default function NotificationDropdown({ onClose, onMarkAllRead }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -65,17 +59,20 @@ export default function NotificationDropdown({ onClose }) {
   const markAsRead = async (id) => {
     try {
       await api.patch(`/notifications/${id}/read/`);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev =>
+        prev.map(n => (n._id === id ? { ...n, isRead: true } : n))
+      );
     } catch (error) {
-      console.error("Error marking notification as read:", error);
+      console.error("Error marking as read:", error);
     }
   };
 
   const markAllAsRead = async () => {
     const unread = notifications.filter(n => !n.isRead);
     try {
-      await Promise.all(unread.map(n => api.patch(`/notifications/${n.id}/read/`)));
+      await Promise.all(unread.map(n => api.patch(`/notifications/${n._id}/read/`)));
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      onMarkAllRead(); // ← mettre à jour le badge dans Navbar
     } catch (error) {
       console.error("Error marking all as read:", error);
     }
@@ -83,7 +80,7 @@ export default function NotificationDropdown({ onClose }) {
 
   const handleItemClick = async (notif) => {
     if (!notif.isRead) {
-      await markAsRead(notif.id);
+      await markAsRead(notif._id);
     }
     onClose();
     navigate('/alerts');
@@ -91,10 +88,11 @@ export default function NotificationDropdown({ onClose }) {
 
   return (
     <div className="absolute right-0 mt-3 w-[400px] bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-50 overflow-hidden z-[1001] animate-in fade-in slide-in-from-top-4 duration-300">
+
       {/* Header */}
       <div className="px-8 py-6 flex items-center justify-between border-b border-gray-50">
         <h3 className="text-2xl font-gara text-text-dark font-medium">Notifications</h3>
-        <button 
+        <button
           onClick={markAllAsRead}
           className="text-primary-orange text-[13px] font-bold font-rope hover:opacity-80 transition-opacity"
         >
@@ -110,16 +108,22 @@ export default function NotificationDropdown({ onClose }) {
           <div className="py-12 text-center text-gray-400 font-rope italic">Aucune notification</div>
         ) : (
           notifications.map((notif, index) => {
-            const config = typeConfig[notif.type] || typeConfig.storm;
+            const config = typeConfig[notif.type] || typeConfig.flood;
+
+            // ✅ Extraire région depuis regionIds
+            const region = Array.isArray(notif.regionIds) && notif.regionIds.length > 0
+              ? notif.regionIds[0]
+              : 'Région inconnue';
+
             return (
-              <div 
-                key={notif.id}
+              <div
+                key={notif._id || index}
                 onClick={() => handleItemClick(notif)}
                 className={`px-8 py-6 flex items-start gap-5 cursor-pointer transition-colors border-b border-gray-50 last:border-0 ${
                   !notif.isRead ? 'bg-[#FAF7F2]/50 hover:bg-[#FAF7F2]' : 'bg-white hover:bg-gray-50'
                 }`}
               >
-                {/* Icon Circle */}
+                {/* Icon */}
                 <div className={`w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center ${config.bgColor}`}>
                   <i className={`${config.icon} ${config.color} text-xl`}></i>
                 </div>
@@ -128,12 +132,12 @@ export default function NotificationDropdown({ onClose }) {
                 <div className="flex-1 flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[15px] font-bold font-rope text-text-dark">
-                      {notif.region || "Région inconnue"}
+                      {region}
                     </span>
                     <span className={`w-2.5 h-2.5 rounded-full ${!notif.isRead ? 'bg-primary-orange' : 'bg-gray-200'}`}></span>
                   </div>
                   <span className="text-[14px] font-medium font-rope text-gray-500">
-                    {config.label} - Risque {notif.riskLevel || 'Modéré'}
+                    {config.label}
                   </span>
                   <span className="text-[12px] font-medium font-rope text-gray-400">
                     {notif.date ? relativeTime(notif.date) : "Récemment"}
@@ -147,11 +151,8 @@ export default function NotificationDropdown({ onClose }) {
 
       {/* Footer */}
       <div className="p-6 bg-white border-t border-gray-50">
-        <button 
-          onClick={() => {
-            onClose();
-            navigate('/alerts');
-          }}
+        <button
+          onClick={() => { onClose(); navigate('/alerts'); }}
           className="w-full text-center text-primary-orange font-bold font-rope text-[15px] hover:opacity-80 transition-opacity"
         >
           Voir toutes les alertes
@@ -159,13 +160,8 @@ export default function NotificationDropdown({ onClose }) {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
     </div>
   );

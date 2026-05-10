@@ -16,8 +16,8 @@ export default function HistoryTable({ events }) {
           </tr>
         </thead>
         <tbody>
-          {events.map((event) => (
-            <HistoryRow key={event.id} event={event} />
+          {events.map((event, index) => (
+            <HistoryRow key={event.id || index} event={event} />
           ))}
         </tbody>
       </table>
