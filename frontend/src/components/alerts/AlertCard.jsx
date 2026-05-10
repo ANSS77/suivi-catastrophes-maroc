@@ -21,9 +21,9 @@ const typeConfig = {
 export default function AlertCard({ alert }) {
   const config = typeConfig[alert.type] || typeConfig.earthquake;
   
-  const getScoreColor = (score) => {
-    if (score >= 70) return 'text-red-600 bg-red-100/50';
-    if (score >= 40) return 'text-orange-600 bg-orange-100/50';
+  const getScoreColor = (score, riskLevel) => {
+    if (riskLevel === 'high')   return 'text-red-600 bg-red-100/50';
+    if (riskLevel === 'medium') return 'text-orange-600 bg-orange-100/50';
     return 'text-green-600 bg-green-100/50';
   };
 
@@ -58,11 +58,6 @@ export default function AlertCard({ alert }) {
           </div>
         </div>
       </div>
-
-      {/* Action */}
-      <button className="text-[#964A25] font-bold font-rope text-[12px] tracking-[0.1em] hover:text-[#C05D2E] transition-colors pr-4">
-        VOIR DÉTAILS
-      </button>
     </div>
   );
 }

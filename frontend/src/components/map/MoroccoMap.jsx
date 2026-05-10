@@ -109,9 +109,9 @@ export default function MoroccoMap({ disasters, activeCategory }) {
           />
         )}
 
-        {filteredDisasters.map(disaster => (
+        {filteredDisasters.map((disaster, i) => (
           <Marker 
-            key={disaster.id} 
+            key={disaster.id || i} 
             position={[disaster.lat, disaster.lng]} 
             icon={createDotIcon(disaster.type)}
           >

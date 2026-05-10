@@ -1,26 +1,21 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const typeConfig = {
   earthquake: {
-    label: 'Séisme',
-    icon: 'fa-solid fa-mountain-sun',
-    color: 'text-red-500',
+    label  : 'Séisme',
+    color  : 'text-red-500',
     bgColor: 'bg-red-50',
-    unit: 'Mw'
   },
   flood: {
-    label: 'Inondation',
-    icon: 'fa-solid fa-water',
-    color: 'text-blue-500',
+    label  : 'Inondation',
+    color  : 'text-blue-500',
     bgColor: 'bg-blue-50',
-    unit: 'm'
   },
   wildfire: {
-    label: 'Incendie',
-    icon: 'fa-solid fa-fire',
-    color: 'text-orange-500',
+    label  : 'Incendie',
+    color  : 'text-orange-500',
     bgColor: 'bg-orange-50',
-    unit: 'ha'
   }
 };
 
@@ -29,9 +24,10 @@ export default function DisasterCard({ disaster, onClose }) {
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100 min-w-[300px] relative font-rope">
+
       {/* Close Button */}
       {onClose && (
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-6 top-6 text-gray-300 hover:text-gray-500 transition-colors"
         >
@@ -53,27 +49,37 @@ export default function DisasterCard({ disaster, onClose }) {
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex justify-between items-center">
           <span className="text-gray-400 text-sm font-medium">Date</span>
-          <span className="text-text-dark text-sm font-bold">12 Jan 2024</span>
+          <span className="text-text-dark text-sm font-bold">
+            {disaster.date
+              ? new Date(disaster.date).toLocaleDateString('fr-FR', {
+                  day: '2-digit', month: 'short', year: 'numeric'
+                })
+              : 'N/A'
+            }
+          </span>
         </div>
+
         <div className="flex justify-between items-center">
           <span className="text-gray-400 text-sm font-medium">Niveau de risque</span>
-          <span className={`${disaster.risk === 'high' ? 'text-red-500' : 'text-orange-500'} text-sm font-bold capitalize`}>
-            {disaster.risk === 'high' ? 'Haut' : 'Moyen'}
+          <span className={`${disaster.risk === 'high' ? 'text-red-500' : disaster.risk === 'medium' ? 'text-orange-500' : 'text-green-500'} text-sm font-bold`}>
+            {disaster.risk === 'high' ? 'Haut' : disaster.risk === 'medium' ? 'Moyen' : 'Faible'}
           </span>
         </div>
+
         <div className="flex justify-between items-center">
-          <span className="text-gray-400 text-sm font-medium">
-            {disaster.type === 'earthquake' ? 'Magnitude' : disaster.type === 'flood' ? 'Niveau d\'eau' : 'Surface'}
-          </span>
+          <span className="text-gray-400 text-sm font-medium">Score IA</span>
           <span className="text-text-dark text-sm font-bold">
-            {disaster.score / 10} {config.unit}
+            {disaster.score > 0 ? `${disaster.score}%` : 'N/A'}
           </span>
         </div>
       </div>
 
-      <button className="w-full bg-[#1A1A1A] hover:bg-black text-white font-bold py-4 rounded-2xl transition-all duration-300 tracking-widest text-[12px] uppercase">
+      <Link
+        to="/alerts"
+        className="block w-full bg-[#1A1A1A] hover:bg-black text-white font-bold py-4 rounded-2xl transition-all duration-300 tracking-widest text-[12px] uppercase text-center"
+      >
         Voir les détails
-      </button>
+      </Link>
     </div>
   );
 }

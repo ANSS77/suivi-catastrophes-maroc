@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LogoIcon from '../common/LogoIcon';
 import NotificationDropdown from '../common/NotificationDropdown';
+import api from '../../api/axios';
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const navLinks = [
     { name: 'Accueil', path: '/' },
@@ -16,6 +18,17 @@ export default function Navbar() {
     { name: 'Historique', path: '/history' },
     ...(user?.role === 'admin' ? [{ name: 'Admin', path: '/admin' }] : []),
   ];
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get('/notifications/')
+        .then(res => {
+          const unread = res.data.filter(n => !n.isRead).length;
+          setUnreadCount(unread);
+        })
+        .catch(() => {});
+    }
+  }, [isAuthenticated]);
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
@@ -36,15 +49,17 @@ export default function Navbar() {
             key={link.path}
             to={link.path}
             className={({ isActive }) =>
-              `relative py-1 text-lg font-gara transition-colors duration-300 group ${isActive ? 'text-primary-orange' : 'text-text-dark hover:text-primary-orange'}`
+              `relative py-1 text-lg font-gara transition-colors duration-300 group ${
+                isActive ? 'text-primary-orange' : 'text-text-dark hover:text-primary-orange'
+              }`
             }
           >
             {({ isActive }) => (
               <>
                 {link.name}
-                <span
-                  className={`absolute bottom-0 left-0 h-[2px] bg-primary-orange transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}
-                ></span>
+                <span className={`absolute bottom-0 left-0 h-[2px] bg-primary-orange transition-all duration-300 ${
+                  isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                }`}></span>
               </>
             )}
           </NavLink>
@@ -67,9 +82,10 @@ export default function Navbar() {
           </div>
         ) : (
           <div className="flex items-center gap-6">
+
             {/* Notification Bell */}
             <div className="relative">
-              <button 
+              <button
                 onClick={() => {
                   setIsNotificationsOpen(!isNotificationsOpen);
                   setIsProfileOpen(false);
@@ -77,11 +93,19 @@ export default function Navbar() {
                 className="text-text-dark hover:text-primary-orange transition-colors relative"
               >
                 <i className="fa-regular fa-bell text-xl"></i>
-                <span className="absolute -top-1 -right-1 bg-red-500 w-2 h-2 rounded-full border border-white"></span>
+                {/* Badge dynamique */}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 w-4 h-4 rounded-full border border-white text-white text-[9px] flex items-center justify-center font-bold">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
 
               {isNotificationsOpen && (
-                <NotificationDropdown onClose={() => setIsNotificationsOpen(false)} />
+                <NotificationDropdown
+                  onClose={() => setIsNotificationsOpen(false)}
+                  onMarkAllRead={() => setUnreadCount(0)}
+                />
               )}
             </div>
 
@@ -94,11 +118,11 @@ export default function Navbar() {
                 }}
                 className="w-10 h-10 rounded-full bg-primary-orange text-white flex items-center justify-center font-rope font-bold text-lg hover:ring-2 hover:ring-primary-orange/30 transition-all"
               >
-                {getInitial(user?.nom || user?.name || "Hafid")}
+                {getInitial(user?.nom || user?.name || "U")}
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl border border-gray-50 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl border border-gray-50 py-2 z-50">
                   <Link
                     to="/profile"
                     className="flex items-center gap-3 px-4 py-2 text-text-dark hover:bg-gray-50 transition-colors"

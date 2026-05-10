@@ -5,40 +5,33 @@ import ProfileInfo from '../components/profile/ProfileInfo';
 import ProfileRegions from '../components/profile/ProfileRegions';
 import ProfileSecurity from '../components/profile/ProfileSecurity';
 
-const mockUser = {
-  nom: "Ahmed El Mansouri",
-  email: "ahmed.elmansouri@disastertrack.ma",
-  regionIds: ["Marrakech-Safi", "Souss-Massa"]
-};
-
 export default function ProfilePage() {
   const [activeSection, setActiveSection] = useState('profile');
+
+  // ✅ Remplacer mockUser par localStorage
+  const user = JSON.parse(localStorage.getItem('user')) || {};
 
   const renderSection = () => {
     switch (activeSection) {
       case 'profile':
-        return <ProfileInfo user={mockUser} />;
+        return <ProfileInfo user={user} />;
       case 'regions':
-        return <ProfileRegions user={mockUser} />;
+        return <ProfileRegions user={user} />;
       case 'security':
         return <ProfileSecurity />;
       default:
-        return <ProfileInfo user={mockUser} />;
+        return <ProfileInfo user={user} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-app-bg flex flex-col">
       <Navbar />
-      
       <div className="flex-1 flex overflow-hidden">
-        {/* Fixed Sidebar Layout */}
-        <ProfileSidebar 
-          activeSection={activeSection} 
-          onSectionChange={setActiveSection} 
+        <ProfileSidebar
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
         />
-
-        {/* Main Scrollable Content */}
         <main className="flex-1 overflow-y-auto px-16 py-16">
           {renderSection()}
         </main>
