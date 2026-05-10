@@ -10,3 +10,4 @@ class DisasterSerializer(serializers.Serializer):
     severity = serializers.ChoiceField(choices=['low', 'medium', 'high'])
     source = serializers.CharField()
     isActive = serializers.BooleanField(default=True)
+    score     = serializers.FloatField(default=0)

@@ -4,7 +4,7 @@ from datetime import datetime
 
 class Alert(Document):
     userId = ObjectIdField(required=True)
-    regionId = ObjectIdField(required=True)
+    regionId = StringField(required=True)
     message = StringField(required=True)
     date = DateTimeField(default=datetime.utcnow)
     type = StringField(choices=['earthquake', 'flood', 'wildfire'])
@@ -14,9 +14,17 @@ class Alert(Document):
 
 class Notification(Document):
     userId = ObjectIdField(required=True)
-    regionIds = ListField(ObjectIdField())
+    regionIds = ListField(StringField())
     alertId = ObjectIdField()
     isRead = BooleanField(default=False)
     isActive = BooleanField(default=True)
+    
+    # Noyaux champs pour les notifications d'alertes
+    phenomenon = StringField()
+    regionName = StringField()
+    date = DateTimeField()
 
-    meta = {'collection': 'notifications'}
+    meta = {
+        'collection': 'notifications',
+        'strict': False  # Permet d'ignorer les champs non définis sans planter
+    }
