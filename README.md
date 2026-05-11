@@ -84,6 +84,19 @@ MoroccAlert/
 | **Modèle IA** | Scikit-learn | Calcul du score de risque par région |
 | **Broker** | Redis | Gestion des tâches Celery |
 
+### ⚙️ Pipeline Automatique (Celery Beat)
+
+```
+00:00 → collect_wildfires + collect_earthquakes
+00:30 → predict_wildfires + predict_earthquakes
+06:00 → collect_floods
+06:30 → predict_floods
+```
+
+Chaque cycle :
+1. **Collector** → récupère les données brutes (NASA FIRMS / USGS / NASA POWER) → sauvegarde dans MongoDB
+2. **Predictions** → charge les modèles `.pkl` → prédit le risque → crée `Disaster` + `Alert` + `Notification` si seuil dépassé
+
 ---
 
 ## 🗂️ Structure du Projet
@@ -191,8 +204,9 @@ suivi-catastrophes-maroc/
 
 - Python 3.10+
 - Node.js 18+
-- Redis (pour Celery)
+- Redis Server
 - Compte MongoDB Atlas
+- Clé API NASA FIRMS (gratuite sur [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/))
 
 ### 1. Cloner le projet
 
@@ -201,19 +215,38 @@ git clone https://github.com/hafid/suivi-catastrophes-maroc.git
 cd suivi-catastrophes-maroc
 ```
 
-### 2. Configuration Backend
+### 2. Installer Redis (Windows)
+
+Télécharger le zip depuis :
+https://github.com/microsoftarchive/redis/releases/download/win-3.2.100/Redis-x64-3.2.100.zip
+
+Extraire dans `C:\Redis\`, puis lancer :
+```bash
+C:\Redis\redis-server.exe
+```
+
+Vérifier que Redis fonctionne :
+```bash
+C:\Redis\redis-cli.exe ping
+# → PONG ✅
+```
+
+### 3. Configuration Backend
 
 ```bash
-# Créer et activer l'environnement virtuel
+# Créer et activer l'environnement virtuel (à la racine du projet)
 python -m venv venv
 venv\Scripts\activate        # Windows
 source venv/bin/activate     # Mac/Linux
 
-# Installer les dépendances (requirements.txt est à la racine)
+# Installer les dépendances
 pip install -r requirements.txt
 
 # Créer le fichier .env dans backend/
-# Contenu du .env :
+```
+
+Contenu du fichier `backend/.env` :
+```env
 SECRET_KEY=your_django_secret_key
 DEBUG=True
 MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/moroccalert_db
@@ -222,41 +255,65 @@ REDIS_URL=redis://localhost:6379/0
 JWT_SECRET_KEY=your_jwt_secret_key
 JWT_ACCESS_TOKEN_LIFETIME=60
 JWT_REFRESH_TOKEN_LIFETIME=1440
+NASA_FIRMS_API_KEY=your_nasa_firms_api_key
 ```
 
-### 3. Configuration Frontend
+### 4. Configuration Frontend
 
 ```bash
 cd frontend
-
-# Installer les dépendances
 npm install
+```
 
-# Créer le fichier .env dans frontend/
-# Contenu du .env :
+Créer le fichier `frontend/.env` :
+```env
 VITE_API_URL=http://localhost:8000
 ```
 
-### 4. Lancer l'application
+### 5. Télécharger les modèles ML
 
-**Terminal 1 — Backend Django :**
+Les fichiers `.pkl` ne sont pas dans le repo (trop lourds).  
+Les télécharger depuis Google Drive et les placer dans `ml/models/` :
+- `earthquake_model.pkl`
+- `flood_model.pkl`
+- `wildfire_model.pkl`
+
+### 6. Lancer l'application
+
+Ouvrir **5 terminaux** :
+
+**Terminal 1 — Redis :**
 ```bash
+C:\Redis\redis-server.exe
+```
+
+**Terminal 2 — Backend Django :**
+```bash
+venv\Scripts\activate
 cd backend
 python manage.py runserver
 # → http://localhost:8000
 ```
 
-**Terminal 2 — Frontend React :**
+**Terminal 3 — Celery Worker :**
+```bash
+venv\Scripts\activate
+cd backend
+celery -A config worker --loglevel=info --pool=solo
+```
+
+**Terminal 4 — Celery Beat :**
+```bash
+venv\Scripts\activate
+cd backend
+celery -A config beat --loglevel=info
+```
+
+**Terminal 5 — Frontend React :**
 ```bash
 cd frontend
 npm run dev
 # → http://localhost:5173
-```
-
-**Terminal 3 — Celery (optionnel) :**
-```bash
-cd backend
-celery -A config worker --loglevel=info
 ```
 
 ---
@@ -305,4 +362,4 @@ Ce projet est sous licence MIT.
 
 ---
 
-**Dernière mise à jour** : Avril 2026
+**Dernière mise à jour** : Mai 2026

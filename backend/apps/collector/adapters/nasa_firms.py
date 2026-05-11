@@ -8,6 +8,24 @@ MAROC_BBOX = "-17.5,20.5,-1.0,35.9"  # min_lon, min_lat, max_lon, max_lat
 
 FIRMS_BASE_URL = "https://firms.modaps.eosdis.nasa.gov/api/area/csv"
 
+# NASA FIRMS VIIRS retourne confidence en texte ou en entier
+CONFIDENCE_MAP = {
+    'l': 25,    # low
+    'n': 50,    # nominal
+    'h': 75,    # high
+}
+
+
+def parse_confidence(value: str) -> int:
+    """Convertit confidence VIIRS (l/n/h ou entier) en int."""
+    value = str(value).strip().lower()
+    if value in CONFIDENCE_MAP:
+        return CONFIDENCE_MAP[value]
+    try:
+        return int(float(value))
+    except ValueError:
+        return 50  # valeur par défaut : nominal
+
 
 def fetch_wildfires(days: int = 1) -> dict:
     api_key = settings.NASA_FIRMS_API_KEY
@@ -42,14 +60,14 @@ def fetch_wildfires(days: int = 1) -> dict:
             bright_ti5 = float(row.get("bright_ti5", 0))
             scan       = float(row.get("scan", 0))
             track      = float(row.get("track", 0))
-            confidence = int(row.get("confidence", 0))
+            confidence = parse_confidence(row.get("confidence", "n"))  # ← CORRIGÉ
             daynight   = row.get("daynight", "D").strip()
             type_      = int(float(row.get("type", 0)))
             acq_date   = row.get("acq_date", str(date.today())).strip()
 
-            parsed_date = datetime.strptime(acq_date, "%Y-%m-%d")
-            month       = parsed_date.month
-            day_of_year = parsed_date.timetuple().tm_yday
+            parsed_date  = datetime.strptime(acq_date, "%Y-%m-%d")
+            month        = parsed_date.month
+            day_of_year  = parsed_date.timetuple().tm_yday
             daynight_enc = 1 if daynight == "D" else 0
 
             Wildfire(

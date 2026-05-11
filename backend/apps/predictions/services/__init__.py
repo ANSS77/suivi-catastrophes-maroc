@@ -12,6 +12,35 @@ from apps.alerts.services import create_alert_and_notify
 MODELS_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / 'ml' / 'models'
 
 
+# ════════════════════════════════════════════════
+# RÉGION depuis coordonnées GPS
+# ════════════════════════════════════════════════
+# Bounding boxes approximatives des 12 régions du Maroc
+# Format : (lat_min, lat_max, lon_min, lon_max)
+REGIONS_BBOX = [
+    ('Tanger-Tetouan-Al Hoceima',   35.1, 35.9, -5.9, -1.0),
+    ('Oriental',                     32.5, 35.1, -3.0, -1.0),
+    ('Fes-Meknes',                   33.0, 35.0, -6.0, -3.0),
+    ('Rabat-Sale-Kenitra',           33.5, 34.8, -7.0, -5.5),
+    ('Beni-Mellal-Khenifra',         32.0, 33.5, -7.0, -4.5),
+    ('Casablanca-Settat',            32.5, 33.8, -8.5, -6.5),
+    ('Marrakech-Safi',               30.5, 32.5, -9.5, -6.5),
+    ('Draa-Tafilalet',               29.0, 32.0, -6.0, -3.0),
+    ('Souss-Massa',                  29.0, 31.0, -10.0, -7.0),
+    ('Guelmim-Oued Noun',            27.5, 29.5, -13.0, -8.0),
+    ('Laayoune-Sakia El Hamra',      24.0, 27.5, -17.5, -8.5),
+    ('Dakhla-Oued Ed-Dahab',         20.5, 24.0, -17.5, -8.5),
+]
+
+
+def get_region_from_coords(latitude: float, longitude: float) -> str:
+    """Retourne le nom de la région marocaine depuis les coordonnées GPS."""
+    for name, lat_min, lat_max, lon_min, lon_max in REGIONS_BBOX:
+        if lat_min <= latitude <= lat_max and lon_min <= longitude <= lon_max:
+            return name
+    return 'Souss-Massa'  # fallback région par défaut
+
+
 # ─── Chargement des modèles ───
 def load_model(filename):
     path = MODELS_DIR / filename
@@ -20,13 +49,8 @@ def load_model(filename):
 
 
 def initialize_ai_models():
-    """
-    Charge les .pkl et crée/met à jour les AiModel dans MongoDB.
-    Appelé au démarrage du serveur.
-    """
     global EARTHQUAKE_PKL, FLOOD_PKL, WILDFIRE_PKL
 
-    # ─── Séismes ───
     try:
         EARTHQUAKE_PKL = load_model('earthquake_model.pkl')
         AiModel.objects(phenomenon='earthquake').update_one(
@@ -40,7 +64,6 @@ def initialize_ai_models():
         EARTHQUAKE_PKL = None
         print(f"❌ Erreur chargement earthquake_model: {e}")
 
-    # ─── Inondations ───
     try:
         FLOOD_PKL = load_model('flood_model.pkl')
         AiModel.objects(phenomenon='flood').update_one(
@@ -54,7 +77,6 @@ def initialize_ai_models():
         FLOOD_PKL = None
         print(f"❌ Erreur chargement flood_model: {e}")
 
-    # ─── Incendies ───
     try:
         WILDFIRE_PKL = load_model('wildfire_model.pkl')
         AiModel.objects(phenomenon='wildfire').update_one(
@@ -69,7 +91,6 @@ def initialize_ai_models():
         print(f"❌ Erreur chargement wildfire_model: {e}")
 
 
-# Initialiser au démarrage
 EARTHQUAKE_PKL = FLOOD_PKL = WILDFIRE_PKL = None
 initialize_ai_models()
 
@@ -84,7 +105,6 @@ def predict_earthquake(earthquake: Earthquake) -> dict:
     model    = EARTHQUAKE_PKL['model']
     scaler   = EARTHQUAKE_PKL['scaler']
     le       = EARTHQUAKE_PKL['le']
-    features = EARTHQUAKE_PKL['features']
 
     nst = earthquake.nst if earthquake.nst else 0
     gap = earthquake.gap if earthquake.gap else 0
@@ -177,18 +197,11 @@ def predict_wildfire(wildfire: Wildfire) -> dict:
 
     return {'label': label, 'score': score}
 
+
 # ════════════════════════════════════════════════
 # PIPELINE COMPLET — Après prédiction
 # ════════════════════════════════════════════════
 def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude: float, longitude: float):
-    """
-    Après prédiction :
-    1. Mettre à jour le document MongoDB
-    2. Récupérer l'AiModel utilisé
-    3. Sauvegarder dans Prediction (anti-doublon par région + phénomène + jour)
-    4. Créer Disaster si risque medium/high
-    5. Log si score >= seuil (Alert créée lors de l'intégration)
-    """
     if result is None:
         return
 
@@ -207,7 +220,7 @@ def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude
     # 2. Récupérer l'AiModel utilisé
     ai_model = AiModel.objects(phenomenon=phenomenon).first()
 
-    # 3. Sauvegarder dans Prediction (anti-doublon)
+    # 3. Sauvegarder dans Prediction (anti-doublon par région + phénomène + jour)
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     existing = Prediction.objects(
         region=region,
@@ -218,6 +231,7 @@ def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude
     if not existing:
         Prediction(
             score=score / 100,
+            severity=label,          # ← AJOUTÉ
             region=region,
             phenomenon=phenomenon,
             date=datetime.now(timezone.utc),
@@ -236,7 +250,7 @@ def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude
             isActive=True,
         ).save()
 
-    # 5. Log si score >= seuil
+    # 5. Créer Alert + Notification si score >= seuil
     threshold = ALERT_THRESHOLDS.get(phenomenon, 70.0)
     if score >= threshold:
         create_alert_and_notify(
@@ -246,21 +260,23 @@ def process_prediction(result: dict, phenomenon: str, obj, region: str, latitude
             severity=label,
         )
 
+
 # ════════════════════════════════════════════════
 # FONCTIONS PRINCIPALES — Appelées par Celery
 # ════════════════════════════════════════════════
 def run_earthquake_predictions():
-    """Prédit pour tous les séismes sans severity_label."""
     earthquakes = Earthquake.objects(severity_label=None)
     count = 0
     for eq in earthquakes:
         try:
             result = predict_earthquake(eq)
+            # ✅ Déduire la région depuis les coordonnées GPS
+            region = get_region_from_coords(eq.latitude, eq.longitude)
             process_prediction(
                 result=result,
                 phenomenon='earthquake',
                 obj=eq,
-                region=eq.place or 'Maroc',
+                region=region,
                 latitude=eq.latitude,
                 longitude=eq.longitude,
             )
@@ -272,7 +288,6 @@ def run_earthquake_predictions():
 
 
 def run_flood_predictions():
-    """Prédit pour toutes les inondations sans flood_risk."""
     floods = Flood.objects(flood_risk=None)
     count = 0
     for flood in floods:
@@ -282,7 +297,7 @@ def run_flood_predictions():
                 result=result,
                 phenomenon='flood',
                 obj=flood,
-                region=flood.region,
+                region=flood.region,   # ← Floods ont déjà un champ region
                 latitude=flood.latitude,
                 longitude=flood.longitude,
             )
@@ -294,17 +309,18 @@ def run_flood_predictions():
 
 
 def run_wildfire_predictions():
-    """Prédit pour tous les incendies sans fire_risk."""
     wildfires = Wildfire.objects(fire_risk=None)
     count = 0
     for wf in wildfires:
         try:
             result = predict_wildfire(wf)
+            # ✅ Déduire la région depuis les coordonnées GPS
+            region = get_region_from_coords(wf.latitude, wf.longitude)
             process_prediction(
                 result=result,
                 phenomenon='wildfire',
                 obj=wf,
-                region='Maroc',
+                region=region,
                 latitude=wf.latitude,
                 longitude=wf.longitude,
             )
