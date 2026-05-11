@@ -16,26 +16,21 @@ export default function ProfileRegions({ user }) {
   const [message, setMessage] = useState({ type: '', text: '' });
   const dropdownRef = useRef(null);
 
-  // Initialisation et fetch des régions
   useEffect(() => {
     const loadRegions = async () => {
-      // 1. D'abord essayer le localStorage
+      // 1. Initialiser depuis localStorage en attendant le backend
       const localRegions = user.regionIds || user.regions || [];
       if (localRegions.length > 0) {
         setSelectedRegions(localRegions);
       }
 
-      // 2. Toujours vérifier avec le backend pour être à jour
+      // 2. Récupérer l'abonnement depuis le backend
       try {
-        const response = await api.get('/notifications/');
-        // Les régions sont stockées dans l'objet Notification de l'utilisateur
-        // Si plusieurs notifications, on prend la première qui contient les régions
-        const userSettings = response.data.find(n => n.regionIds);
-        if (userSettings && userSettings.regionIds.length > 0) {
-          setSelectedRegions(userSettings.regionIds);
-
-          // Sync localStorage
-          const updatedUser = { ...user, regionIds: userSettings.regionIds };
+        // ✅ Utiliser l'endpoint dédié aux abonnements
+        const response = await api.get('/auth/choose-regions/');
+        if (response.data?.regionIds?.length > 0) {
+          setSelectedRegions(response.data.regionIds);
+          const updatedUser = { ...user, regionIds: response.data.regionIds };
           localStorage.setItem('user', JSON.stringify(updatedUser));
         }
       } catch (error) {
@@ -48,7 +43,6 @@ export default function ProfileRegions({ user }) {
     loadRegions();
   }, [user]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -64,12 +58,9 @@ export default function ProfileRegions({ user }) {
     setMessage({ type: '', text: '' });
     try {
       await api.post('/auth/choose-regions/', { regionIds: newRegions });
-
-      // Mettre à jour localStorage
       const updatedUser = { ...user, regionIds: newRegions };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setSelectedRegions(newRegions);
-
       setMessage({ type: 'success', text: 'Régions mises à jour avec succès.' });
     } catch (error) {
       console.error("Error saving regions:", error);
@@ -122,7 +113,6 @@ export default function ProfileRegions({ user }) {
                   <span className="text-[15px] font-rope font-bold text-text-dark">{region}</span>
                 </div>
                 <div className="flex items-center gap-6">
-
                   <button
                     onClick={() => removeRegion(region)}
                     className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
@@ -138,7 +128,6 @@ export default function ProfileRegions({ user }) {
             </div>
           )}
 
-          {/* Add Region Trigger and Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}

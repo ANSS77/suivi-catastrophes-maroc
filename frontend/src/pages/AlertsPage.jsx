@@ -11,39 +11,49 @@ const filters = [
   { id: 'wildfire', label: 'Incendies' },
 ];
 
+// Fallback si severity absente : lire depuis le message
+const getRiskLevelFromMessage = (message) => {
+  if (!message) return 'low';
+  const msg = message.toLowerCase();
+  if (msg.includes('high'))   return 'high';
+  if (msg.includes('medium')) return 'medium';
+  return 'low';
+};
+
 export default function AlertsPage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter]);
+  useEffect(() => { fetchAlerts(); }, []);
+  useEffect(() => { setCurrentPage(1); }, [activeFilter]);
 
   const fetchAlerts = async () => {
     try {
       setLoading(true);
       const data = await getAlerts();
 
-      // Mapper les champs API → composant
-      const mapped = data.map(a => ({
-        id: a._id || a.id,
-        type: a.type,
-        title: a.message,
-        score: a.score || 0,  // sera implémenté plus tard
-        date: new Date(a.date).toLocaleDateString('fr-FR', {
-          day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        }),
-        location: a.regionId,
-      }));
+      const mapped = data
+        .filter(a => a && a.type)
+        .map(a => {
+          // ✅ Priorité : severity depuis API → fallback message
+          const riskLevel = a.severity || getRiskLevelFromMessage(a.message);
+          return {
+            id: a._id || a.id,
+            type: a.type,
+            title: a.message,
+            score: a.score || 0,
+            riskLevel: riskLevel,
+            date: new Date(a.date).toLocaleDateString('fr-FR', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            }),
+            location: a.regionId,
+          };
+        });
 
-      // Inverser pour avoir les plus récentes en premier
-      setAlerts(mapped.reverse());
+      setAlerts([...mapped].reverse());
     } catch (error) {
       console.error('Erreur chargement alerts:', error);
     } finally {
@@ -57,9 +67,10 @@ export default function AlertsPage() {
 
   const ITEMS_PER_PAGE = 11;
   const totalPages = Math.ceil(filteredAlerts.length / ITEMS_PER_PAGE);
-  const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
-  const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-  const currentAlerts = filteredAlerts.slice(indexOfFirstItem, indexOfLastItem);
+  const currentAlerts = filteredAlerts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen bg-app-bg flex flex-col">
@@ -95,9 +106,7 @@ export default function AlertsPage() {
 
         <div className="flex flex-col gap-5">
           {loading ? (
-            <div className="text-center py-20 text-[#888] font-rope">
-              Chargement...
-            </div>
+            <div className="text-center py-20 text-[#888] font-rope">Chargement...</div>
           ) : currentAlerts.length > 0 ? (
             currentAlerts.map((alert, i) => (
               <AlertCard key={alert.id || i} alert={alert} />

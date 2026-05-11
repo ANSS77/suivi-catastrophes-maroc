@@ -19,7 +19,7 @@ export default function Navbar() {
     ...(user?.role === 'admin' ? [{ name: 'Admin', path: '/admin' }] : []),
   ];
 
-  useEffect(() => {
+  const fetchUnreadCount = () => {
     if (isAuthenticated) {
       api.get('/notifications/')
         .then(res => {
@@ -28,7 +28,26 @@ export default function Navbar() {
         })
         .catch(() => {});
     }
+  };
+
+  // Fetch au mount
+  useEffect(() => {
+    fetchUnreadCount();
   }, [isAuthenticated]);
+
+  // Rafraîchir le badge toutes les 60 secondes
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const interval = setInterval(fetchUnreadCount, 60000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  const handleBellClick = () => {
+    setIsNotificationsOpen(!isNotificationsOpen);
+    setIsProfileOpen(false);
+    // Rafraîchir le badge à chaque ouverture
+    fetchUnreadCount();
+  };
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
@@ -86,17 +105,13 @@ export default function Navbar() {
             {/* Notification Bell */}
             <div className="relative">
               <button
-                onClick={() => {
-                  setIsNotificationsOpen(!isNotificationsOpen);
-                  setIsProfileOpen(false);
-                }}
+                onClick={handleBellClick}
                 className="text-text-dark hover:text-primary-orange transition-colors relative"
               >
                 <i className="fa-regular fa-bell text-xl"></i>
-                {/* Badge dynamique */}
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 w-4 h-4 rounded-full border border-white text-white text-[9px] flex items-center justify-center font-bold">
-                    {unreadCount}
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </button>

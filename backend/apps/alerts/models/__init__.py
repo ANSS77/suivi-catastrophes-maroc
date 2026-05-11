@@ -18,13 +18,17 @@ class Notification(Document):
     alertId = ObjectIdField()
     isRead = BooleanField(default=False)
     isActive = BooleanField(default=True)
-    
-    # Noyaux champs pour les notifications d'alertes
+
+    # 'subscription' = abonnement régions | 'alert' = notification d'alerte
+    notif_type = StringField(choices=['subscription', 'alert'], default='subscription')
+
+    # Champs pour les notifications d'alerte
+    type = StringField(choices=['earthquake', 'flood', 'wildfire'])
     phenomenon = StringField()
     regionName = StringField()
-    date = DateTimeField()
+    date = DateTimeField(default=datetime.utcnow)
 
     meta = {
         'collection': 'notifications',
-        'strict': False  # Permet d'ignorer les champs non définis sans planter
+        'strict': False
     }

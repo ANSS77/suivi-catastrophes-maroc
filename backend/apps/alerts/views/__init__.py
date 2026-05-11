@@ -11,13 +11,19 @@ from rest_framework.permissions import AllowAny
 from apps.core.utils.auth_utils import get_user_id_from_token
 
 
-def get_score(region: str, phenomenon: str) -> float:
-    """Retourne le dernier score de prédiction pour une région + phénomène."""
+def get_prediction(region: str, phenomenon: str) -> dict:
+    """Retourne score + severity depuis la dernière Prediction."""
     prediction = Prediction.objects(
         region=region,
         phenomenon=phenomenon
     ).order_by('-date').first()
-    return round(prediction.score * 100, 1) if prediction else 0.0
+
+    if prediction:
+        return {
+            'score': round(prediction.score * 100, 1),
+            'severity': prediction.severity or 'low',
+        }
+    return {'score': 0.0, 'severity': 'low'}
 
 
 class AlertView(APIView):
@@ -32,7 +38,9 @@ class AlertView(APIView):
         data = []
         for a in alerts:
             alert_data = AlertSerializer(a).data
-            alert_data['score'] = get_score(a.regionId, a.type)
+            pred = get_prediction(a.regionId, a.type)
+            alert_data['score']    = pred['score']
+            alert_data['severity'] = pred['severity']  # ← AJOUTÉ
             data.append(alert_data)
         return Response(data, status=status.HTTP_200_OK)
 
@@ -45,7 +53,11 @@ class NotificationView(APIView):
         if not user_id:
             return Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        notifications = Notification.objects(userId=ObjectId(user_id))
+        notifications = Notification.objects(
+            userId=ObjectId(user_id),
+            notif_type='alert'
+        ).order_by('-date')
+
         data = [NotificationSerializer(n).data for n in notifications]
         return Response(data, status=status.HTTP_200_OK)
 
