@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny
 
 
 class RegisterView(APIView):
-    permission_classes = [AllowAny] 
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -21,7 +21,7 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
-    permission_classes = [AllowAny] 
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -50,46 +50,56 @@ class ChooseRegionsView(APIView):
         user_id = get_user_id_from_token(request)
         if not user_id:
             return Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
+
         serializer = ChooseRegionsSerializer(data=request.data)
         if serializer.is_valid():
             region_ids = serializer.validated_data['regionIds']
-            
-            notification = Notification.objects(userId=ObjectId(user_id)).first()
-            if notification:
-                notification.regionIds = region_ids
-                notification.save()
+
+            # ✅ Chercher uniquement l'abonnement (notif_type='subscription')
+            subscription = Notification.objects(
+                userId=ObjectId(user_id),
+                notif_type='subscription'
+            ).first()
+
+            if subscription:
+                subscription.regionIds = region_ids
+                subscription.save()
             else:
                 Notification(
-                    userId=ObjectId(user_id), regionIds=region_ids).save()
-            
+                    userId=ObjectId(user_id),
+                    regionIds=region_ids,
+                    notif_type='subscription',   # ← abonnement
+                    isActive=True,
+                ).save()
+
             return Response({'message': 'Régions sauvegardées.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UpdateProfileView(APIView):
     def post(self, request):
         user_id = get_user_id_from_token(request)
         if not user_id:
             return Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
+
         from apps.users.models import User
         user = User.objects(id=user_id).first()
         if not user:
             return Response({'error': 'Utilisateur introuvable.'}, status=status.HTTP_404_NOT_FOUND)
-            
+
         nom = request.data.get('nom')
         email = request.data.get('email')
-        
+
         if email and email != user.email:
             if User.objects(email=email).first():
                 return Response({'error': 'Cet email est déjà utilisé par un autre compte.'}, status=status.HTTP_400_BAD_REQUEST)
             user.email = email
-            
+
         if nom:
             user.nom = nom
-            
+
         user.save()
-        
+
         return Response({
             'message': 'Profil mis à jour.',
             'user': {
@@ -100,27 +110,28 @@ class UpdateProfileView(APIView):
             }
         }, status=status.HTTP_200_OK)
 
+
 class ChangePasswordView(APIView):
     def post(self, request):
         user_id = get_user_id_from_token(request)
         if not user_id:
             return Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
+
         from apps.users.models import User
         user = User.objects(id=user_id).first()
         if not user:
             return Response({'error': 'Utilisateur introuvable.'}, status=status.HTTP_404_NOT_FOUND)
-            
+
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
-        
+
         if not user.check_password(current_password):
             return Response({'error': 'Le mot de passe actuel est incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         if not new_password or len(new_password) < 6:
             return Response({'error': 'Le nouveau mot de passe doit contenir au moins 6 caractères.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         user.set_password(new_password)
         user.save()
-        
+
         return Response({'message': 'Mot de passe mis à jour avec succès.'}, status=status.HTTP_200_OK)

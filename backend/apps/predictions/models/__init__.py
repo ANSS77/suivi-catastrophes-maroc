@@ -1,10 +1,10 @@
- 
 from mongoengine import Document, FloatField, StringField, DateTimeField
 from datetime import datetime
 
 
 class Prediction(Document):
     score = FloatField(min_value=0.0, max_value=1.0)
+    severity = StringField(choices=['low', 'medium', 'high'])  # ← AJOUTÉ
     region = StringField()
     phenomenon = StringField(choices=['earthquake', 'flood', 'wildfire'])
     date = DateTimeField(default=datetime.utcnow)

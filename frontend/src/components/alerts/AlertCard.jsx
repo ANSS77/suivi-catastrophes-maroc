@@ -18,14 +18,15 @@ const typeConfig = {
   },
 };
 
+const scoreStyles = {
+  high:   { text: 'text-red-600',    bg: 'bg-red-100'    },
+  medium: { text: 'text-yellow-600', bg: 'bg-yellow-100' },
+  low:    { text: 'text-green-600',  bg: 'bg-green-100'  },
+};
+
 export default function AlertCard({ alert }) {
   const config = typeConfig[alert.type] || typeConfig.earthquake;
-  
-  const getScoreColor = (score, riskLevel) => {
-    if (riskLevel === 'high')   return 'text-red-600 bg-red-100/50';
-    if (riskLevel === 'medium') return 'text-orange-600 bg-orange-100/50';
-    return 'text-green-600 bg-green-100/50';
-  };
+  const style = scoreStyles[alert.riskLevel] || scoreStyles.low;
 
   return (
     <div className="bg-[#FAF7F2] border border-[#E9E1D5]/50 rounded-xl p-5 flex items-center justify-between hover:shadow-lg hover:shadow-black/5 transition-all duration-300">
@@ -41,7 +42,7 @@ export default function AlertCard({ alert }) {
             <h3 className="text-2xl font-gara text-text-dark font-medium leading-tight capitalize">
               {alert.title}
             </h3>
-            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-rope tracking-widest ${getScoreColor(alert.score)} uppercase`}>
+            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-rope tracking-widest uppercase ${style.text} ${style.bg}`}>
               {alert.score}%
             </span>
           </div>
@@ -61,4 +62,3 @@ export default function AlertCard({ alert }) {
     </div>
   );
 }
-
