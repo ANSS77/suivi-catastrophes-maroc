@@ -75,7 +75,7 @@ export default function HistoryPage() {
           hour: '2-digit', minute: '2-digit'
         }),
         riskLevel : d.severity,
-        score     : 0,
+        score     : d.score,
         status    : d.isActive ? 'active' : 'resolved',
       }));
   
