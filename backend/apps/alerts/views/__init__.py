@@ -62,3 +62,25 @@ class NotificationView(APIView):
             {'error': 'Notification introuvable.'},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+class MarkAllNotificationsReadView(APIView):
+    """Endpoint pour marquer toutes les notifications comme lues."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user_id = get_user_id_from_token(request)
+        if not user_id:
+            return Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        notifications = Notification.objects(userId=ObjectId(user_id), isRead=False)
+        count = notifications.count()
+
+        for notif in notifications:
+            notif.isRead = True
+            notif.save()
+
+        return Response(
+            {'message': f'{count} notification(s) marquée(s) comme lue(s).'},
+            status=status.HTTP_200_OK
+        )

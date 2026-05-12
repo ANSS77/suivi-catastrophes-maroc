@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { markAllNotificationsAsRead } from '../../services/alertService';
 
 const relativeTime = (dateString) => {
   const now = new Date();
@@ -68,13 +69,21 @@ export default function NotificationDropdown({ onClose, onMarkAllRead }) {
   };
 
   const markAllAsRead = async () => {
-    const unread = notifications.filter(n => !n.isRead);
     try {
-      await Promise.all(unread.map(n => api.patch(`/notifications/${n._id}/read/`)));
+      await markAllNotificationsAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      onMarkAllRead(); // ← mettre à jour le badge dans Navbar
+      onMarkAllRead();
     } catch (error) {
       console.error("Error marking all as read:", error);
+      // Fallback: marquer un par un
+      const unread = notifications.filter(n => !n.isRead);
+      try {
+        await Promise.all(unread.map(n => api.patch(`/notifications/${n._id}/read/`)));
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        onMarkAllRead();
+      } catch (e) {
+        console.error("Fallback marking all as read failed:", e);
+      }
     }
   };
 

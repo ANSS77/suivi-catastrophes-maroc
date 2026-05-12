@@ -11,10 +11,13 @@ export default function UserTable() {
   const fetchUsers = async (page = 1) => {
     setLoading(true);
     try {
-      const response = await api.get(`/admin/users/?page=${page}`);
-      setUsers(response.data.results || response.data); // Adjust based on your API structure (pagination vs simple list)
-      // Assuming API returns total_pages if paginated
-      setTotalPages(response.data.total_pages || 1);
+      const response = await api.get(`/admin/users/`);
+      // Le backend retourne une liste simple, pas de pagination
+      const allUsers = response.data;
+      const startIndex = (page - 1) * 10;
+      const endIndex = startIndex + 10;
+      setUsers(allUsers.slice(startIndex, endIndex));
+      setTotalPages(Math.max(1, Math.ceil(allUsers.length / 10)));
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {

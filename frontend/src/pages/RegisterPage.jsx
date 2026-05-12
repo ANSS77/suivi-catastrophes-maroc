@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [isRegionDropdownOpen, setIsRegionDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -74,6 +74,13 @@ export default function RegisterPage() {
         password: formData.password,
         regions: formData.regions,
       });
+
+      // Connexion automatique après inscription
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+
       navigate('/');
     } catch (err) {
       if (err.response?.status === 400) {
@@ -82,6 +89,8 @@ export default function RegisterPage() {
         } else {
           setError('Données invalides. Vérifiez les champs.');
         }
+      } else if (err.response?.status === 401) {
+        setError('Compte créé. Veuillez vous connecter.');
       } else if (err.response?.status === 500) {
         setError('Erreur serveur. Réessayez plus tard.');
       } else {
