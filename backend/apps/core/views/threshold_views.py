@@ -6,15 +6,29 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from apps.core import constants
 from apps.core.serializers import ThresholdSerializer
+from apps.core.utils.auth_utils import get_user_id_from_token
+from apps.users.models import User
 
 CONSTANTS_PATH = Path(__file__).resolve().parent.parent.parent / 'core' / 'constants.py'
+
+
+def check_admin(request):
+    """Vérifie que l'utilisateur est admin."""
+    user_id = get_user_id_from_token(request)
+    if not user_id:
+        return False, Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = User.objects(id=user_id).first()
+    if not user or user.role != 'admin':
+        return False, Response({'error': 'Accès refusé. Admin requis.'}, status=status.HTTP_403_FORBIDDEN)
+    return True, None
 
 
 class ThresholdView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        """Retourne les seuils actuels."""
+        """Retourne les seuils actuels. Accessible à tous."""
         data = [
             {"phenomenon": k, "threshold": v}
             for k, v in constants.ALERT_THRESHOLDS.items()
@@ -22,7 +36,11 @@ class ThresholdView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     def put(self, request):
-        """Modifie un seuil d'alerte."""
+        """Modifie un seuil d'alerte. Admin uniquement."""
+        is_authorized, error_response = check_admin(request)
+        if not is_authorized:
+            return error_response
+
         serializer = ThresholdSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

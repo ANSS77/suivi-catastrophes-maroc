@@ -1,14 +1,33 @@
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from apps.users.models import User
+from apps.core.utils.auth_utils import get_user_id_from_token
 
-class UserListView(APIView):
+
+class IsAdminMixin:
+    """Mixin pour vérifier que l'utilisateur est admin."""
+    def check_admin(self, request):
+        user_id = get_user_id_from_token(request)
+        if not user_id:
+            return False, Response({'error': 'Non authentifié.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user = User.objects(id=user_id).first()
+        if not user or user.role != 'admin':
+            return False, Response({'error': 'Accès refusé. Admin requis.'}, status=status.HTTP_403_FORBIDDEN)
+        return True, None
+
+
+class UserListView(APIView, IsAdminMixin):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        """Retourne la liste de tous les users."""
+        is_authorized, error_response = self.check_admin(request)
+        if not is_authorized:
+            return error_response
+
         users = User.objects.all()
         data = [
             {
@@ -23,11 +42,14 @@ class UserListView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class ToggleUserView(APIView):
+class ToggleUserView(APIView, IsAdminMixin):
     permission_classes = [AllowAny]
 
     def patch(self, request, user_id):
-        """Active ou désactive un user."""
+        is_authorized, error_response = self.check_admin(request)
+        if not is_authorized:
+            return error_response
+
         try:
             user = User.objects(id=user_id).first()
             if not user:
@@ -36,7 +58,6 @@ class ToggleUserView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # Toggle isActive
             user.isActive = not user.isActive
             user.save()
 
@@ -53,12 +74,15 @@ class ToggleUserView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
-class DeleteUserView(APIView):
+
+class DeleteUserView(APIView, IsAdminMixin):
     permission_classes = [AllowAny]
 
     def delete(self, request, user_id):
-        """Supprimer un user."""
+        is_authorized, error_response = self.check_admin(request)
+        if not is_authorized:
+            return error_response
+
         try:
             user = User.objects(id=user_id).first()
             if not user:
